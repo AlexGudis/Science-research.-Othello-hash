@@ -10,8 +10,8 @@ import hashlib
 with open('mac_vlan_mapping.json', 'r') as JSON:
        json_dict = json.load(JSON)
 n = len(json_dict)
-a = bitarray.bitarray(int(n * 2))
-b = bitarray.bitarray(int(n * 2))
+a = bitarray.bitarray(int(n * 1.3))
+b = bitarray.bitarray(int(n * 1.3))
 ma = len(a)
 mb = len(b)
 ha = hashlib.md5

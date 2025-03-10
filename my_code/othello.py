@@ -40,7 +40,9 @@ class Othello:
             e.append((str(left_node) + '_L', str(right_node) + '_R'))
         return e
 
-    def draw_graph(self, left_nodes, right_nodes):
+    def draw_graph(self, left_nodes, right_nodes, colors):
+        "A function to draw bipartite graph"
+
         nx.set_node_attributes(self.g, {node: 0 for node in left_nodes}, "bipartite")
         nx.set_node_attributes(self.g, {node: 1 for node in right_nodes}, "bipartite")
 
@@ -49,7 +51,7 @@ class Othello:
 
         # Визуализация
         plt.figure(figsize=(8, 5))
-        nx.draw(self.g, pos, with_labels=True, node_color=['lightblue' if node in left_nodes else 'lightgreen' for node in self.g.nodes], edge_color="black")
+        nx.draw(self.g, pos, with_labels=True, node_color=colors, edge_color="black")
         plt.show()
 
 
@@ -65,14 +67,25 @@ class Othello:
             self.g.clear()  # очищаем граф перед построением
             edges = self.generate_edges(table)
 
-            left_nodes = {el[0] for el in edges}
-            right_nodes = {el[1] for el in edges}
+            # Два набора вершин двудольного графа
+            left_nodes = sorted({el[0] for el in edges}, reverse=True)
+            right_nodes = sorted({el[1] for el in edges}, reverse=True)
 
+            # Добавляем вершины и ребра в граф
             self.g.add_nodes_from(left_nodes, bipartite=0)
             self.g.add_nodes_from(right_nodes, bipartite=1)
             self.g.add_edges_from(edges)
-            print(edges)
-            self.draw_graph(left_nodes, right_nodes)
+
+            # Изначально все вершины покрашены в серый цвет
+            node_colors = {node: "gray" for node in left_nodes}  # Левые вершины
+            node_colors.update({node: "gray" for node in right_nodes})  # Правые вершины
+            nx.set_node_attributes(self.g, node_colors, "color")
+            colors = [self.g.nodes[node]["color"] for node in self.g.nodes]
+
+            # Отрисовка графа
+            self.draw_graph(left_nodes, right_nodes, colors)
+
+            # Проверка графа на циклы
             cycle = self.check_cycle()
 
         print(edges)
