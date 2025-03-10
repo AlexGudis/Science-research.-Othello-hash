@@ -21,7 +21,9 @@ class Othello:
 
     def search(self, key):
         "Found a value (dest port) for key in MAC-VLAN table"
-        return self.a[self.ha(key)] ^ self.b[self.hb(key)]
+        i = int.from_bytes(self.ha(key.encode()).digest()) % self.hash_size
+        j = int.from_bytes(self.hb(key.encode()).digest()) % self.hash_size
+        return self.a[i] ^ self.b[j]
 
     def check_cycle(self):
         "Checks if any cycle exists in graph g"
@@ -34,11 +36,20 @@ class Othello:
     def generate_edges(self, table):
         "A function to generete edges of a bipartite graph"
         e = [] # a list of edges
+        left = []
+        right = []
         for k,v in table.items():
             left_node = int.from_bytes(self.ha(k.encode()).digest()) % self.hash_size
             right_node = int.from_bytes(self.hb(k.encode()).digest()) % self.hash_size
-            e.append((str(left_node) + '_L', str(right_node) + '_R'))
-        return e
+            left_node_sig = str(left_node) + '_L' + '_' + str(v)
+            right_node_sig = str(right_node) + '_R' + '_' + str(v)
+            e.append((left_node_sig, right_node_sig))
+            left.append(left_node_sig)
+            right.append(right_node_sig)
+
+        left = sorted(set(left),reverse=True)
+        right = sorted(set(right), reverse=True)
+        return e, left, right
 
     def draw_graph(self, left_nodes, right_nodes, colors):
         "A function to draw bipartite graph"
@@ -55,21 +66,35 @@ class Othello:
         plt.show()
 
 
+    def dfs_edges(self, graph, start, visited_edges, edge_order):
+        """Итеративный DFS-обход рёбер"""
+        stack = [start]
+        visited_nodes = set()
+
+        while stack:
+            node = stack.pop()
+            if node not in visited_nodes:
+                visited_nodes.add(node)
+                for neighbor in graph.neighbors(node):
+                    edge = tuple(sorted((node, neighbor)))  # Упорядочиваем ребро
+                    if edge not in visited_edges:
+                        visited_edges.add(edge)
+                        edge_order.append(edge)
+                        stack.append(neighbor)
+
+
     def construct(self, table):
         "Create and fill the whole structure of Othello based on MAC-VLAN table"
         
         #phase 1
         cycle = True
         edges = []
+        node_colors = dict()
         while cycle:
             # вот здесь надо выбирать новые хеш-функции из некоторого набора
 
             self.g.clear()  # очищаем граф перед построением
-            edges = self.generate_edges(table)
-
-            # Два набора вершин двудольного графа
-            left_nodes = sorted({el[0] for el in edges}, reverse=True)
-            right_nodes = sorted({el[1] for el in edges}, reverse=True)
+            edges, left_nodes, right_nodes = self.generate_edges(table)
 
             # Добавляем вершины и ребра в граф
             self.g.add_nodes_from(left_nodes, bipartite=0)
@@ -90,9 +115,66 @@ class Othello:
 
         print(edges)
 
-
         #phase 2. DFS traversal
+        # Полный обход графа, включая все компоненты
+        visited_edges = set()
+        dfs_edge_order = []
+        for node in self.g.nodes:
+            if all(tuple(sorted((node, neighbor))) in visited_edges for neighbor in self.g.neighbors(node)):
+                continue  # Пропускаем вершины, если все рёбра уже посещены
+            self.dfs_edges(self.g, node, visited_edges, dfs_edge_order)
         
+        print(dfs_edge_order)
+
+
+        # Обход рёбер и перекраска вершин по правилам
+        for u, v in dfs_edge_order:
+            
+            '''
+            nx.set_node_attributes(self.g, node_colors, "color")
+            colors = [self.g.nodes[node]["color"] for node in self.g.nodes]
+            # Отрисовка графа
+            self.draw_graph(left_nodes, right_nodes, colors)'
+            '''
+
+
+            u_indexes = u.split('_')
+            v_indexes = v.split('_')
+            print(u_indexes)
+            t_k = int(u_indexes[2])
+            i, j = int(u_indexes[0]), int(v_indexes[0])
+            if node_colors[u] == "gray" and node_colors[v] == "gray":
+                print('Both gray')
+                # if all undef then a[i] = 0, b[j] = t(k)
+                self.a[i] = 0
+                self.b[j] = t_k
+                node_colors[u] = "white"
+                if t_k:
+                    node_colors[v] = "black"
+                else:
+                    node_colors[v] = "white"
+
+
+            elif node_colors[u] != "gray" or node_colors[v] != "gray":
+                print('One of them are not gray')
+                if node_colors[u] != "gray": # which means that a[i] is set
+                    self.b[j] = self.a[i] ^ t_k
+                    if self.b[j]:
+                        node_colors[v] = 'black'
+                    else:
+                        node_colors[v] = 'white'
+                else: # which means that b[j] is set
+                    self.a[i] = self.b[j] ^ t_k
+                    if self.a[i]:
+                        node_colors[u] = 'black'
+                    else:
+                        node_colors[u] = 'white'
+            
+                
+        nx.set_node_attributes(self.g, node_colors, "color")
+        colors = [self.g.nodes[node]["color"] for node in self.g.nodes]
+        # Отрисовка графа
+        self.draw_graph(left_nodes, right_nodes, colors)
 
     def insert(self, key):
         "Insert a key into Othello structure"

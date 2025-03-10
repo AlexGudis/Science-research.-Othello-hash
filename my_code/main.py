@@ -19,4 +19,11 @@ hb = hashlib.sha256
 
 
 oth = othello.Othello(ma, mb, ha, hb, a, b)
+keys = []
+values = []
+for k,v in json_dict.items():
+       keys.append(k)
+       values.append(v)
+
 oth.construct(json_dict)
+print(f'ANS = {oth.search(keys[3])}')
