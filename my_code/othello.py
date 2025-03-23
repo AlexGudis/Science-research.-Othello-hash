@@ -34,35 +34,44 @@ class Othello:
             return False
         
     def generate_edges(self, table):
-        "A function to generete edges of a bipartite graph"
-        e = [] # a list of edges
-        left = []
-        right = []
-        for k,v in table.items():
+        """Генерация рёбер двудольного графа с классами рёбер"""
+        edges = []  # Список рёбер
+        left_nodes = set()
+        right_nodes = set()
+
+        for k, v in table.items():
+            # Генерируем номера узлов через хеши
             left_node = int.from_bytes(self.ha(k.encode()).digest()) % self.hash_size
             right_node = int.from_bytes(self.hb(k.encode()).digest()) % self.hash_size
-            left_node_sig = str(left_node) + '_L' + '_' + str(v)
-            right_node_sig = str(right_node) + '_R' + '_' + str(v)
-            e.append((left_node_sig, right_node_sig))
-            left.append(left_node_sig)
-            right.append(right_node_sig)
 
-        left = sorted(set(left),reverse=True)
-        right = sorted(set(right), reverse=True)
-        return e, left, right
+            # Узлы без классов
+            left_node_sig = f"{left_node}_L"
+            right_node_sig = f"{right_node}_R"
 
-    def draw_graph(self, left_nodes, right_nodes, colors):
-        "A function to draw bipartite graph"
+            # Добавляем рёбра с атрибутом класса
+            edges.append((left_node_sig, right_node_sig, str(v)))
 
+            # Добавляем узлы без классов
+            left_nodes.add(left_node_sig)
+            right_nodes.add(right_node_sig)
+
+        return edges, sorted(left_nodes, reverse=True), sorted(right_nodes, reverse=True)
+
+
+    def draw_graph(self, left_nodes, right_nodes, node_colors):
+        """Функция рисует граф с раскрашенными рёбрами"""
+        
         nx.set_node_attributes(self.g, {node: 0 for node in left_nodes}, "bipartite")
         nx.set_node_attributes(self.g, {node: 1 for node in right_nodes}, "bipartite")
 
-        # Построение правильного расположения
         pos = nx.bipartite_layout(self.g, left_nodes)
 
-        # Визуализация
+        # Цвета рёбер по классу
+        edge_colors = ["green" if data['edge_class'] == '1' else "blue" for u, v, data in self.g.edges(data=True)]
+
         plt.figure(figsize=(8, 5))
-        nx.draw(self.g, pos, with_labels=True, node_color=colors, edge_color="black")
+        nx.draw(self.g, pos, with_labels=True, node_color=node_colors, edge_color=edge_colors, width=2, font_color="red")
+        
         plt.show()
 
 
@@ -82,6 +91,13 @@ class Othello:
                         edge_order.append(edge)
                         stack.append(neighbor)
 
+    def check_edges_colors(self):
+        "Позволяет посмотреть на узлы, ребра, их классы"
+        cnt = 0
+        for u, v, data in self.g.edges(data=True):
+            print(f"{cnt}: Ребро {u} - {v}, Класс: {data['edge_class']}")
+            cnt += 1
+
 
     def construct(self, table):
         "Create and fill the whole structure of Othello based on MAC-VLAN table"
@@ -99,7 +115,11 @@ class Othello:
             # Добавляем вершины и ребра в граф
             self.g.add_nodes_from(left_nodes, bipartite=0)
             self.g.add_nodes_from(right_nodes, bipartite=1)
-            self.g.add_edges_from(edges)
+
+            # Добавляем рёбра с атрибутом "класс"
+            for u, v, edge_class in edges:
+                self.g.add_edge(u, v, edge_class=edge_class)
+
 
             # Изначально все вершины покрашены в серый цвет
             node_colors = {node: "gray" for node in left_nodes}  # Левые вершины
@@ -113,7 +133,7 @@ class Othello:
             # Проверка графа на циклы
             cycle = self.check_cycle()
 
-        print(edges)
+        #print(edges)
 
         #phase 2. DFS traversal
         # Полный обход графа, включая все компоненты
@@ -124,24 +144,16 @@ class Othello:
                 continue  # Пропускаем вершины, если все рёбра уже посещены
             self.dfs_edges(self.g, node, visited_edges, dfs_edge_order)
         
-        print(dfs_edge_order)
+        self.check_edges_colors()
+        print(f'DFS order = {dfs_edge_order}')
 
 
         # Обход рёбер и перекраска вершин по правилам
         for u, v in dfs_edge_order:
-            
-            '''
-            nx.set_node_attributes(self.g, node_colors, "color")
-            colors = [self.g.nodes[node]["color"] for node in self.g.nodes]
-            # Отрисовка графа
-            self.draw_graph(left_nodes, right_nodes, colors)'
-            '''
-
-
             u_indexes = u.split('_')
             v_indexes = v.split('_')
-            print(u_indexes)
-            t_k = int(u_indexes[2])
+            #print(u_indexes)
+            t_k = int(self.g[u][v]['edge_class'])
             i, j = int(u_indexes[0]), int(v_indexes[0])
             if node_colors[u] == "gray" and node_colors[v] == "gray":
                 print('Both gray')
@@ -175,6 +187,7 @@ class Othello:
         colors = [self.g.nodes[node]["color"] for node in self.g.nodes]
         # Отрисовка графа
         self.draw_graph(left_nodes, right_nodes, colors)
+
 
     def insert(self, key):
         "Insert a key into Othello structure"
