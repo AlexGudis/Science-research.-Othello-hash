@@ -89,38 +89,39 @@ class Othello:
             print(f"{cnt}: Ребро {u} - {v}, Класс: {data['edge_class']}")
             cnt += 1
 
-    def recolor(self, node_colors):
+    def recolor(self):
+        # Нужно поменять так, чтобы не использовать node_colors
+        #self.g.nodes[node]
         for u, v in self.g.edges:
             u_indexes = u.split('_')
             v_indexes = v.split('_')
             t_k = int(self.g[u][v]['edge_class'])
             i, j = int(u_indexes[0]), int(v_indexes[0])
-            if node_colors[u] == "gray" and node_colors[v] == "gray":
+            if self.g.nodes[u]['color'] == "gray" and self.g.nodes[v]['color'] == "gray":
                 #print('Both gray')
                 # if all undef then a[i] = 0, b[j] = t(k)
                 self.a[i] = 0
                 self.b[j] = t_k
-                node_colors[u] = "white"
+                self.g.nodes[u]['color'] = "white"
                 if t_k:
-                    node_colors[v] = "black"
+                    self.g.nodes[v]['color'] = "black"
                 else:
-                    node_colors[v] = "white"
+                    self.g.nodes[v]['color'] = "white"
 
-            elif node_colors[u] != "gray" or node_colors[v] != "gray":
+            elif self.g.nodes[u]['color'] != "gray" or self.g.nodes[v]['color'] != "gray":
                 #print('One of them are not gray')
-                if node_colors[u] != "gray": # which means that a[i] is set
+                if self.g.nodes[u]['color'] != "gray": # which means that a[i] is set
                     self.b[j] = self.a[i] ^ t_k
                     if self.b[j]:
-                        node_colors[v] = 'black'
+                        self.g.nodes[v]['color'] = 'black'
                     else:
-                        node_colors[v] = 'white'
+                        self.g.nodes[v]['color'] = 'white'
                 else: # which means that b[j] is set
                     self.a[i] = self.b[j] ^ t_k
                     if self.a[i]:
-                        node_colors[u] = 'black'
+                        self.g.nodes[u]['color'] = 'black'
                     else:
-                        node_colors[u] = 'white' 
-        return node_colors
+                        self.g.nodes[u]['color'] = 'white' 
 
     def construct(self, table):
         "Create and fill the whole structure of Othello based on MAC-VLAN table"
@@ -159,10 +160,7 @@ class Othello:
 
         #phase 2. traversal
         # Обход рёбер и перекраска вершин по правилам
-        node_colors = self.recolor(node_colors)
-        #print(node_colors)
-                
-        nx.set_node_attributes(self.g, node_colors, "color")
+        self.recolor()
         
         # Отрисовка графа
         self.draw_graph()
@@ -196,7 +194,7 @@ class Othello:
 
         self.draw_graph()
 
-        print([self.g.nodes[node] for node in self.g.nodes])
+        #print([self.g.nodes[node] for node in self.g.nodes])
 
         # case 1 - cycle
         if self.check_cycle():
