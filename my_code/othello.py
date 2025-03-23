@@ -134,6 +134,7 @@ class Othello:
         cycle = True
         while cycle:
             print('START or cycle found')
+            # Выбираем каждый раз две новые различные хеш-функции из некоторого множества хеш-функций
             self.ha, self.hb = random.sample(hash_functions, 2)
             self.g.clear()
 
@@ -195,20 +196,23 @@ class Othello:
 
         #print([self.g.nodes[node] for node in self.g.nodes])
 
+        u_indexes = left_node_sig.split('_')
+        v_indexes = right_node_sig.split('_')
+        t_k = int(v)
+        i, j = int(u_indexes[0]), int(v_indexes[0])
+
         # case 1 - cycle
         if self.check_cycle():
             print('Oh shit, make it again...')
             self.construct(table + {k:v})
         elif left_not_in and right_not_in: # case - просто новая компонента связности в графе
-            pass
+            self.recolor_both_gray(t_k, left_node_sig, right_node_sig, i, j)
         elif left_not_in or right_not_in: # новая вершина в существующей компоненте связности
-            pass
+            self.recolor_not_gray(t_k, left_node_sig, right_node_sig, i, j)
         else: # Новое ребро в существующей компоненте связности и при этом обе вершины уже существуют
             pass
 
-
-
-        pass
+        self.draw_graph()
 
 
     def addX(self, key):

@@ -7,17 +7,7 @@ import zlib
 import hashlib
 
 
-def test(oth, json_dict):
-    keys = []
-    values = []
-    for k, v in json_dict.items():
-        keys.append(k)
-        values.append(v)
-
-    oth.construct(json_dict)
-    #print(oth.a)
-    #print(oth.b)
-
+def test_correct(oth, json_dict, keys):
     cnt = 0
     for i in range(n):
        key = keys[i]
@@ -28,6 +18,14 @@ def test(oth, json_dict):
               cnt += 1
 
     return cnt
+
+def get_keys(json_dict):
+    keys = []
+    values = []
+    for k, v in json_dict.items():
+       keys.append(k)
+       values.append(v)
+    return keys, values
 
 
 with open('mac_vlan_mapping.json', 'r') as JSON:
@@ -44,10 +42,15 @@ hb = hashlib.sha256
 
 oth = othello.Othello(ma, mb, ha, hb, a, b)
 
-cnt = test(oth, json_dict)
 
+keys, values = get_keys(json_dict)
+oth.construct(json_dict)
+cnt = test_correct(oth, json_dict, keys)
 print(f'Correct is {cnt} of {n}')
 
 
 
 oth.insert(json_dict, "EC:94:9F:FG:A8:37-2051", "0")
+json_dict["EC:94:9F:FG:A8:37-2051"] = '0'
+cnt = test_correct(oth, json_dict, keys)
+print(f'Correct is {cnt} of {n}')
