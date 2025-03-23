@@ -204,12 +204,23 @@ class Othello:
         # case 1 - cycle
         if self.check_cycle():
             print('Oh shit, make it again...')
-            self.construct(table + {k:v})
+            self.construct(table | {k:v})
         elif left_not_in and right_not_in: # case - просто новая компонента связности в графе
             self.recolor_both_gray(t_k, left_node_sig, right_node_sig, i, j)
+            print('Case both')
         elif left_not_in or right_not_in: # новая вершина в существующей компоненте связности
             self.recolor_not_gray(t_k, left_node_sig, right_node_sig, i, j)
+            print('Case one')
         else: # Новое ребро в существующей компоненте связности и при этом обе вершины уже существуют
+            print(f'Oh man, draw it from scratch again...')
+
+            left_nodes = [n for n, d in self.g.nodes(data=True) if d["bipartite"] == 0]
+            right_nodes = [n for n, d in self.g.nodes(data=True) if d["bipartite"] == 1]
+            node_colors = {node: "gray" for node in left_nodes}  # Левые вершины
+            node_colors.update({node: "gray" for node in right_nodes})  # Правые вершины
+            nx.set_node_attributes(self.g, node_colors, "color")
+            self.draw_graph()
+            self.recolor()
             pass
 
         self.draw_graph()
