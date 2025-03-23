@@ -107,6 +107,7 @@ class Othello:
         edges = []
         node_colors = dict()
         while cycle:
+            print('START or cycle found')
             # вот здесь надо выбирать новые хеш-функции из некоторого набора
 
             self.g.clear()  # очищаем граф перед построением
@@ -156,7 +157,7 @@ class Othello:
             t_k = int(self.g[u][v]['edge_class'])
             i, j = int(u_indexes[0]), int(v_indexes[0])
             if node_colors[u] == "gray" and node_colors[v] == "gray":
-                print('Both gray')
+                #print('Both gray')
                 # if all undef then a[i] = 0, b[j] = t(k)
                 self.a[i] = 0
                 self.b[j] = t_k
@@ -168,7 +169,7 @@ class Othello:
 
 
             elif node_colors[u] != "gray" or node_colors[v] != "gray":
-                print('One of them are not gray')
+                #print('One of them are not gray')
                 if node_colors[u] != "gray": # which means that a[i] is set
                     self.b[j] = self.a[i] ^ t_k
                     if self.b[j]:
@@ -185,6 +186,7 @@ class Othello:
                 
         nx.set_node_attributes(self.g, node_colors, "color")
         colors = [self.g.nodes[node]["color"] for node in self.g.nodes]
+        
         # Отрисовка графа
         self.draw_graph(left_nodes, right_nodes, colors)
 
