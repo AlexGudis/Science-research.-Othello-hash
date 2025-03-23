@@ -3,6 +3,7 @@ from networkx.algorithms import bipartite
 from math import log2, ceil
 import matplotlib.pyplot as plt
 import hashlib
+import random
 
 hash_functions = [hashlib.sha1, hashlib.sha224, hashlib.sha256,
     hashlib.sha384, hashlib.sha3_512, hashlib.sha512]
@@ -89,9 +90,30 @@ class Othello:
             print(f"{cnt}: Ребро {u} - {v}, Класс: {data['edge_class']}")
             cnt += 1
 
+    def recolor_both_gray(self, t_k, u, v, i, j):
+        self.a[i] = 0
+        self.b[j] = t_k
+        self.g.nodes[u]['color'] = "white"
+        if t_k:
+            self.g.nodes[v]['color'] = "black"
+        else:
+            self.g.nodes[v]['color'] = "white"
+
+    def recolor_not_gray(self, t_k, u, v, i, j):
+        if self.g.nodes[u]['color'] != "gray": # which means that a[i] is set
+            self.b[j] = self.a[i] ^ t_k
+            if self.b[j]:
+                self.g.nodes[v]['color'] = 'black'
+            else:
+                self.g.nodes[v]['color'] = 'white'
+        else: # which means that b[j] is set
+            self.a[i] = self.b[j] ^ t_k
+            if self.a[i]:
+                self.g.nodes[u]['color'] = 'black'
+            else:
+                self.g.nodes[u]['color'] = 'white'
+
     def recolor(self):
-        # Нужно поменять так, чтобы не использовать node_colors
-        #self.g.nodes[node]
         for u, v in self.g.edges:
             u_indexes = u.split('_')
             v_indexes = v.split('_')
@@ -99,44 +121,21 @@ class Othello:
             i, j = int(u_indexes[0]), int(v_indexes[0])
             if self.g.nodes[u]['color'] == "gray" and self.g.nodes[v]['color'] == "gray":
                 #print('Both gray')
-                # if all undef then a[i] = 0, b[j] = t(k)
-                self.a[i] = 0
-                self.b[j] = t_k
-                self.g.nodes[u]['color'] = "white"
-                if t_k:
-                    self.g.nodes[v]['color'] = "black"
-                else:
-                    self.g.nodes[v]['color'] = "white"
+                self.recolor_both_gray(t_k, u, v, i, j)
 
             elif self.g.nodes[u]['color'] != "gray" or self.g.nodes[v]['color'] != "gray":
                 #print('One of them are not gray')
-                if self.g.nodes[u]['color'] != "gray": # which means that a[i] is set
-                    self.b[j] = self.a[i] ^ t_k
-                    if self.b[j]:
-                        self.g.nodes[v]['color'] = 'black'
-                    else:
-                        self.g.nodes[v]['color'] = 'white'
-                else: # which means that b[j] is set
-                    self.a[i] = self.b[j] ^ t_k
-                    if self.a[i]:
-                        self.g.nodes[u]['color'] = 'black'
-                    else:
-                        self.g.nodes[u]['color'] = 'white' 
+                self.recolor_not_gray(t_k, u, v, i, j) 
 
     def construct(self, table):
         "Create and fill the whole structure of Othello based on MAC-VLAN table"
         
         #phase 1
-
         cycle = True
-        edges = []
-        node_colors = dict()
         while cycle:
             print('START or cycle found')
-            # вот здесь надо выбирать новые хеш-функции из некоторого набора
-
+            self.ha, self.hb = random.sample(hash_functions, 2)
             self.g.clear()
-
 
             edges, left_nodes, right_nodes = self.generate_edges(table)
             # Добавляем вершины и ребра в граф
@@ -159,7 +158,7 @@ class Othello:
         #print(self.g.edges)
 
         #phase 2. traversal
-        # Обход рёбер и перекраска вершин по правилам
+        # Полный обход всех рёбер и перекраска вершин по правилам
         self.recolor()
         
         # Отрисовка графа
