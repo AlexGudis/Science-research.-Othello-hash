@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import hashlib
 
 hash_functions = [hashlib.sha1, hashlib.sha224, hashlib.sha256,
-                  hashlib.sha384, hashlib.sha3_512, hashlib.sha512]
+    hashlib.sha384, hashlib.sha3_512, hashlib.sha512]
 
 
 class Othello:
@@ -72,7 +72,7 @@ class Othello:
         right_nodes = sorted(right_nodes, reverse=True)
         node_colors = [self.g.nodes[node]["color"] for node in self.g.nodes]
         edge_colors = ["green" if data['edge_class'] ==
-                       '1' else "blue" for u, v, data in self.g.edges(data=True)]
+            '1' else "blue" for u, v, data in self.g.edges(data=True)]
 
         pos = nx.bipartite_layout(self.g, left_nodes)
 
@@ -82,23 +82,6 @@ class Othello:
 
         plt.show()
 
-    def dfs_edges(self, graph, start, visited_edges, edge_order):
-        """Итеративный DFS-обход рёбер"""
-        stack = [start]
-        visited_nodes = set()
-
-        while stack:
-            node = stack.pop()
-            if node not in visited_nodes:
-                visited_nodes.add(node)
-                for neighbor in graph.neighbors(node):
-                    # Упорядочиваем ребро
-                    edge = tuple(sorted((node, neighbor)))
-                    if edge not in visited_edges:
-                        visited_edges.add(edge)
-                        edge_order.append(edge)
-                        stack.append(neighbor)
-
     def check_edges_colors(self):
         "Позволяет посмотреть на узлы, ребра, их классы"
         cnt = 0
@@ -106,15 +89,14 @@ class Othello:
             print(f"{cnt}: Ребро {u} - {v}, Класс: {data['edge_class']}")
             cnt += 1
 
-    def recolor(self, dfs_edge_order, node_colors):
-        for u, v in dfs_edge_order:
+    def recolor(self, node_colors):
+        for u, v in self.g.edges:
             u_indexes = u.split('_')
             v_indexes = v.split('_')
-            # print(u_indexes)
             t_k = int(self.g[u][v]['edge_class'])
             i, j = int(u_indexes[0]), int(v_indexes[0])
             if node_colors[u] == "gray" and node_colors[v] == "gray":
-                # print('Both gray')
+                #print('Both gray')
                 # if all undef then a[i] = 0, b[j] = t(k)
                 self.a[i] = 0
                 self.b[j] = t_k
@@ -125,24 +107,26 @@ class Othello:
                     node_colors[v] = "white"
 
             elif node_colors[u] != "gray" or node_colors[v] != "gray":
-                # print('One of them are not gray')
-                if node_colors[u] != "gray":  # which means that a[i] is set
+                #print('One of them are not gray')
+                if node_colors[u] != "gray": # which means that a[i] is set
                     self.b[j] = self.a[i] ^ t_k
                     if self.b[j]:
                         node_colors[v] = 'black'
                     else:
                         node_colors[v] = 'white'
-                else:  # which means that b[j] is set
+                else: # which means that b[j] is set
                     self.a[i] = self.b[j] ^ t_k
                     if self.a[i]:
                         node_colors[u] = 'black'
                     else:
-                        node_colors[u] = 'white'
+                        node_colors[u] = 'white' 
         return node_colors
 
     def construct(self, table):
         "Create and fill the whole structure of Othello based on MAC-VLAN table"
-        # phase 1
+        
+        #phase 1
+
         cycle = True
         edges = []
         node_colors = dict()
@@ -150,83 +134,85 @@ class Othello:
             print('START or cycle found')
             # вот здесь надо выбирать новые хеш-функции из некоторого набора
 
-            self.g.clear()  # очищаем граф перед построением
-            edges, left_nodes, right_nodes = self.generate_edges(table)
+            self.g.clear()
 
+
+            edges, left_nodes, right_nodes = self.generate_edges(table)
             # Добавляем вершины и ребра в граф
             self.g.add_nodes_from(left_nodes, bipartite=0)
             self.g.add_nodes_from(right_nodes, bipartite=1)
-
             # Добавляем рёбра с атрибутом "класс"
             for u, v, edge_class in edges:
                 self.g.add_edge(u, v, edge_class=edge_class)
-
             # Изначально все вершины покрашены в серый цвет
-            # Левые вершины
-            node_colors = {node: "gray" for node in left_nodes}
-            # Правые вершины
-            node_colors.update({node: "gray" for node in right_nodes})
+            node_colors = {node: "gray" for node in left_nodes}  # Левые вершины
+            node_colors.update({node: "gray" for node in right_nodes})  # Правые вершины
             nx.set_node_attributes(self.g, node_colors, "color")
-
+            
             # Отрисовка графа
             self.draw_graph()
 
             # Проверка графа на циклы
             cycle = self.check_cycle()
 
-        # print(edges)
+        #print(self.g.edges)
 
-        # phase 2. DFS traversal
-        # Полный обход графа, включая все компоненты
-        visited_edges = set()
-        dfs_edge_order = []
-        for node in self.g.nodes:
-            if all(tuple(sorted((node, neighbor))) in visited_edges for neighbor in self.g.neighbors(node)):
-                continue  # Пропускаем вершины, если все рёбра уже посещены
-            self.dfs_edges(self.g, node, visited_edges, dfs_edge_order)
-
-        self.check_edges_colors()
-        print(f'DFS order = {dfs_edge_order}')
-
+        #phase 2. traversal
         # Обход рёбер и перекраска вершин по правилам
-        node_colors = self.recolor(dfs_edge_order, node_colors)
+        node_colors = self.recolor(node_colors)
+        #print(node_colors)
+                
         nx.set_node_attributes(self.g, node_colors, "color")
-
+        
         # Отрисовка графа
         self.draw_graph()
+
 
     def insert(self, table, k, v):
         "Insert a key into Othello structure"
         "Нужно передавать имеющуюся таблицу на случай невозможности добавить ключ и необходимости перестроения всей структуры"
 
         # Генерируем номера узлов через хеши
-        left_node = int.from_bytes(
-            self.ha(k.encode()).digest()) % self.hash_size
-        right_node = int.from_bytes(
-            self.hb(k.encode()).digest()) % self.hash_size
+        left_node = int.from_bytes(self.ha(k.encode()).digest()) % self.hash_size
+        right_node = int.from_bytes(self.hb(k.encode()).digest()) % self.hash_size
 
         # Узлы без классов
         left_node_sig = f"{left_node}_L"
         right_node_sig = f"{right_node}_R"
 
-        print(
-            f'We are gonna add ребро {left_node_sig} - {right_node_sig}, класс = {v}')
+        print(f'We are gonna add ребро {left_node_sig} - {right_node_sig}, класс = {v}')
+        left_not_in = False
+        right_not_in = False
 
         # 3. Добавляем вершины в граф (если их ещё нет)
         if left_node_sig not in self.g:
+            left_not_in = True
             self.g.add_node(left_node_sig, bipartite=0, color="gray")
         if right_node_sig not in self.g:
+            right_not_in = True
             self.g.add_node(right_node_sig, bipartite=1, color="gray")
-
+        
         self.g.add_edge(left_node_sig, right_node_sig, edge_class=v)
 
         self.draw_graph()
 
+        print([self.g.nodes[node] for node in self.g.nodes])
+
+        # case 1 - cycle
         if self.check_cycle():
             print('Oh shit, make it again...')
-            self.construct(table + {k: v})
+            self.construct(table + {k:v})
+        elif left_not_in and right_not_in: # case - просто новая компонента связности в графе
+            pass
+        elif left_not_in or right_not_in: # новая вершина в существующей компоненте связности
+            pass
+        else: # Новое ребро в существующей компоненте связности и при этом обе вершины уже существуют
+            pass
+
+
 
         pass
+
 
     def addX(self, key):
         "Input key into X"
