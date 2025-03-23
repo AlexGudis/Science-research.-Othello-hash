@@ -44,3 +44,7 @@ oth = othello.Othello(ma, mb, ha, hb, a, b)
 cnt = test(oth, json_dict)
 
 print(f'Correct is {cnt} of {n}')
+
+
+
+oth.insert(json_dict, "EC:94:9F:FG:A8:37-2051", "0")
