@@ -24,13 +24,13 @@ class Othello:
             f'Generated Othello structure with ma={ma}, mb={mb}, hash_size={self.hash_size}')
 
     def search(self, key):
-        "Found a value (dest port) for key in MAC-VLAN table"
+        """Found a value (dest port) for key in MAC-VLAN table"""
         i = int.from_bytes(self.ha(key.encode()).digest()) % self.hash_size
         j = int.from_bytes(self.hb(key.encode()).digest()) % self.hash_size
         return self.a[i] ^ self.b[j]
 
     def check_cycle(self):
-        "Checks if any cycle exists in graph g"
+        """Checks if any cycle exists in graph g"""
         try:
             nx.find_cycle(self.g)
             return True
@@ -149,7 +149,7 @@ class Othello:
             #self.draw_graph()
 
     def construct(self, table):
-        "Create and fill the whole structure of Othello based on MAC-VLAN table"
+        """Create and fill the whole structure of Othello based on MAC-VLAN table"""
         
         #phase 1
         cycle = True
@@ -197,7 +197,7 @@ class Othello:
 
 
     def insert(self, table, k, v):
-        "Insert a key into Othello structure"
+        """Insert a key into Othello structure"""
         "Нужно передавать имеющуюся таблицу на случай невозможности добавить ключ и необходимости перестроения всей структуры"
 
         # Генерируем номера узлов через хеши
@@ -250,23 +250,36 @@ class Othello:
             nx.set_node_attributes(self.g, node_colors, "color")
             self.draw_graph()
             self.recolor()
-            pass
 
         self.draw_graph()
 
 
-    def addX(self, key):
-        "Input key into X"
+    def addX(self, k):
+        """Input key into X"""
         pass
 
-    def addY(self, key):
-        "Input key into Y"
+    def addY(self, k):
+        """Input key into Y"""
         pass
 
-    def alter(self, key):
-        "Change key value place"
+    def alter(self, k):
+        """Change key value place"""
         pass
 
-    def delete(self, key):
-        "Delete key from Othello structure"
-        pass
+    def delete(self, k):
+        """Delete key from Othello structure"""
+
+        self.draw_graph()
+        # Генерируем номера узлов через хеши
+        left_node = int.from_bytes(self.ha(k.encode()).digest()) % self.hash_size
+        right_node = int.from_bytes(self.hb(k.encode()).digest()) % self.hash_size
+
+        # Узлы без классов
+        #print(self.g.edges)
+        #print(k)
+        left_node_sig = f"{left_node}_L"
+        right_node_sig = f"{right_node}_R"
+        print(f'DELETE {left_node_sig} {right_node_sig} with key {k}')
+        
+        self.g.remove_edge(left_node_sig, right_node_sig)
+        self.draw_graph()

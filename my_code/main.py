@@ -52,7 +52,17 @@ print(f'Correct is {cnt} of {len(json_dict)}')
 
 oth.insert(json_dict, "EC:94:9F:FG:A8:37-2051", "1")
 json_dict["EC:94:9F:FG:A8:37-2051"] = '1'
-
 keys, values = get_keys(json_dict)
 cnt = test_correct(oth, json_dict, keys)
 print(f'Correct is {cnt} of {len(json_dict)}')
+
+
+
+oth.delete(keys[0])
+#print(f'KEYS[0] = {keys[0]}')
+del json_dict[keys[0]]
+keys, values = get_keys(json_dict)
+cnt = test_correct(oth, json_dict, keys)
+print(f'Correct is {cnt} of {len(json_dict)}')
+
+
