@@ -39,9 +39,10 @@ class Othello:
 
     def generate_edges(self, table):
         """Генерация рёбер двудольного графа с классами рёбер"""
-        edges = []  # Список рёбер
+        edges = set()  # Список рёбер
         left_nodes = set()
         right_nodes = set()
+        check_cycl = False
 
         for k, v in table.items():
             # Генерируем номера узлов через хеши
@@ -54,14 +55,20 @@ class Othello:
             left_node_sig = f"{left_node}_L"
             right_node_sig = f"{right_node}_R"
 
+            if (left_node_sig, right_node_sig, '1') in edges or (left_node_sig, right_node_sig, '0') in edges:
+                print('pipipipi')
+                check_cycl = True
+
+            print(k,left_node_sig, right_node_sig, str(v))
+
             # Добавляем рёбра с атрибутом класса
-            edges.append((left_node_sig, right_node_sig, str(v)))
+            edges.add((left_node_sig, right_node_sig, str(v)))
 
             # Добавляем узлы без классов
             left_nodes.add(left_node_sig)
             right_nodes.add(right_node_sig)
 
-        return edges, sorted(left_nodes, reverse=True), sorted(right_nodes, reverse=True)
+        return edges, sorted(left_nodes, reverse=True), sorted(right_nodes, reverse=True), check_cycl
 
     def draw_graph(self):
         """Функция рисует граф с раскрашенными рёбрами"""
@@ -135,10 +142,19 @@ class Othello:
         while cycle:
             print('START or cycle found')
             # Выбираем каждый раз две новые различные хеш-функции из некоторого множества хеш-функций
-            self.ha, self.hb = random.sample(hash_functions, 2)
+            #self.ha, self.hb = random.sample(hash_functions, 2)
             self.g.clear()
 
-            edges, left_nodes, right_nodes = self.generate_edges(table)
+            edges, left_nodes, right_nodes, cycle = self.generate_edges(table)
+            if cycle:
+                print(edges)
+                print('Cycle in edges found => switching hash func')
+                continue
+
+            if len(edges) != len(table):
+                print('Double found!!')
+                continue
+
             # Добавляем вершины и ребра в граф
             self.g.add_nodes_from(left_nodes, bipartite=0)
             self.g.add_nodes_from(right_nodes, bipartite=1)
@@ -174,7 +190,6 @@ class Othello:
         left_node = int.from_bytes(self.ha(k.encode()).digest()) % self.hash_size
         right_node = int.from_bytes(self.hb(k.encode()).digest()) % self.hash_size
 
-        # Узлы без классов
         left_node_sig = f"{left_node}_L"
         right_node_sig = f"{right_node}_R"
 
