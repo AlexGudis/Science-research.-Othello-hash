@@ -56,10 +56,10 @@ class Othello:
             right_node_sig = f"{right_node}_R"
 
             if (left_node_sig, right_node_sig, '1') in edges or (left_node_sig, right_node_sig, '0') in edges:
-                print('pipipipi')
+                #print('pipipipi')
                 check_cycl = True
 
-            print(k,left_node_sig, right_node_sig, str(v))
+            #print(k,left_node_sig, right_node_sig, str(v))
 
             # Добавляем рёбра с атрибутом класса
             edges.add((left_node_sig, right_node_sig, str(v)))
@@ -121,7 +121,19 @@ class Othello:
                 self.g.nodes[u]['color'] = 'white'
 
     def recolor(self):
-        for u, v in self.g.edges:
+        components = list(nx.connected_components(self.g))
+        all_dfs_edges = []
+        for component in components:
+            subgraph = self.g.subgraph(component)
+            start_node = next(iter(component))  # Берем любую вершину в компоненте
+            dfs_edges = list(nx.edge_dfs(subgraph, source=start_node))
+            all_dfs_edges.extend(dfs_edges)
+
+        
+        all_dfs_edges = [(u, v) if u.endswith("_L") else (v, u) for u, v in all_dfs_edges]
+        #print(all_dfs_edges, len(all_dfs_edges))
+
+        for u, v in all_dfs_edges:
             u_indexes = u.split('_')
             v_indexes = v.split('_')
             t_k = int(self.g[u][v]['edge_class'])
@@ -133,6 +145,8 @@ class Othello:
             elif self.g.nodes[u]['color'] != "gray" or self.g.nodes[v]['color'] != "gray":
                 #print('One of them are not gray')
                 self.recolor_not_gray(t_k, u, v, i, j) 
+            #print(u, v)
+            #self.draw_graph()
 
     def construct(self, table):
         "Create and fill the whole structure of Othello based on MAC-VLAN table"
@@ -147,7 +161,7 @@ class Othello:
 
             edges, left_nodes, right_nodes, cycle = self.generate_edges(table)
             if cycle:
-                print(edges)
+                #print(edges)
                 print('Cycle in edges found => switching hash func')
                 continue
 
