@@ -156,7 +156,7 @@ class Othello:
         while cycle:
             print('START or cycle found')
             # Выбираем каждый раз две новые различные хеш-функции из некоторого множества хеш-функций
-            #self.ha, self.hb = random.sample(hash_functions, 2)
+            self.ha, self.hb = random.sample(hash_functions, 2)
             self.g.clear()
 
             edges, left_nodes, right_nodes, cycle = self.generate_edges(table)
