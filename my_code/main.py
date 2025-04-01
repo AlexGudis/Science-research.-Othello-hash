@@ -5,6 +5,7 @@ import bitarray
 from math import log2, ceil
 import zlib
 import hashlib
+import pog
 
 
 def test_correct(oth, json_dict, keys):
@@ -44,13 +45,20 @@ oth = othello.Othello(ma, mb, ha, hb, a, b)
 
 
 keys, values = get_keys(json_dict)
-oth.construct(json_dict)
+'''oth.construct(json_dict)
 cnt = test_correct(oth, json_dict, keys)
+print(f'Correct is {cnt} of {len(json_dict)}')'''
+
+
+pg = pog.POG()
+pg.construct(json_dict)
+#pg.search('37:4F:B7:B9:AE:04-791')
+cnt = test_correct(pg, json_dict, keys)
 print(f'Correct is {cnt} of {len(json_dict)}')
 
 
 
-oth.insert(json_dict, "EC:94:9F:FG:A8:37-2051", "1")
+'''oth.insert(json_dict, "EC:94:9F:FG:A8:37-2051", "1")
 json_dict["EC:94:9F:FG:A8:37-2051"] = '1'
 keys, values = get_keys(json_dict)
 cnt = test_correct(oth, json_dict, keys)
@@ -63,6 +71,6 @@ oth.delete(keys[0])
 del json_dict[keys[0]]
 keys, values = get_keys(json_dict)
 cnt = test_correct(oth, json_dict, keys)
-print(f'Correct is {cnt} of {len(json_dict)}')
+print(f'Correct is {cnt} of {len(json_dict)}')'''
 
 

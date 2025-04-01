@@ -181,7 +181,7 @@ class Othello:
             nx.set_node_attributes(self.g, node_colors, "color")
             
             # Отрисовка графа
-            self.draw_graph()
+            '''self.draw_graph()'''
 
             # Проверка графа на циклы
             cycle = self.check_cycle()
@@ -193,7 +193,7 @@ class Othello:
         self.recolor()
         
         # Отрисовка графа
-        self.draw_graph()
+        '''self.draw_graph()'''
 
 
     def insert(self, table, k, v):

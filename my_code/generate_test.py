@@ -17,7 +17,7 @@ def generate_json(filename="output.json", num_entries=10):
         mac = generate_mac()
         vlan = generate_vlan()
         key = f"{mac}-{vlan}"
-        value = str(random.randint(0, 1))  # Порт 0 или 1
+        value = str(random.randint(0, 7))  # Порт 0 или 1
         data[key] = value
     
     with open(filename, "w") as f:
