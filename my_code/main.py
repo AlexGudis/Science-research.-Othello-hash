@@ -32,16 +32,14 @@ def get_keys(json_dict):
 with open('mac_vlan_mapping.json', 'r') as JSON:
     json_dict = json.load(JSON)
 
-n = len(json_dict)
+'''n = len(json_dict)
 a = bitarray.bitarray(int(n * 1.33))
 b = bitarray.bitarray(int(n * 1.33))
 ma = len(a)
 mb = len(b)
 ha = hashlib.sha3_512
 hb = hashlib.sha256
-
-
-oth = othello.Othello(ma, mb, ha, hb, a, b)
+oth = othello.Othello(ma, mb, ha, hb, a, b)'''
 
 
 keys, values = get_keys(json_dict)
