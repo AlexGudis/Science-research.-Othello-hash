@@ -69,4 +69,5 @@ class POG:
             self.group[i].insert(table, k, new_v[i])
 
     def delete(self, k):
-        pass
+        for i in range(len(self.group)):
+            self.group[i].delete(k)

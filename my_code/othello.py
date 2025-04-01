@@ -269,7 +269,8 @@ class Othello:
     def delete(self, k):
         """Delete key from Othello structure"""
 
-        self.draw_graph()
+        '''self.draw_graph()'''
+
         # Генерируем номера узлов через хеши
         left_node = int.from_bytes(self.ha(k.encode()).digest()) % self.hash_size
         right_node = int.from_bytes(self.hb(k.encode()).digest()) % self.hash_size
@@ -282,4 +283,5 @@ class Othello:
         print(f'DELETE {left_node_sig} {right_node_sig} with key {k}')
         
         self.g.remove_edge(left_node_sig, right_node_sig)
-        self.draw_graph()
+        
+        '''self.draw_graph()'''
