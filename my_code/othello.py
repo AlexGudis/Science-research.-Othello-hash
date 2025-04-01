@@ -221,7 +221,7 @@ class Othello:
         
         self.g.add_edge(left_node_sig, right_node_sig, edge_class=v)
 
-        self.draw_graph()
+        '''self.draw_graph()'''
 
         #print([self.g.nodes[node] for node in self.g.nodes])
 
@@ -248,10 +248,10 @@ class Othello:
             node_colors = {node: "gray" for node in left_nodes}  # Левые вершины
             node_colors.update({node: "gray" for node in right_nodes})  # Правые вершины
             nx.set_node_attributes(self.g, node_colors, "color")
-            self.draw_graph()
+            '''self.draw_graph()'''
             self.recolor()
 
-        self.draw_graph()
+        '''self.draw_graph()'''
 
 
     def addX(self, k):

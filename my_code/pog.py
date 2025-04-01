@@ -13,7 +13,7 @@ class POG:
         for i in range(len(self.group)):
             ans += str(self.group[i].search(key))
 
-        print(f'FOUND = {ans}')
+        #print(f'FOUND = {ans}')
 
         return int(ans, 2)
 
@@ -59,7 +59,14 @@ class POG:
             self.group.append(oth)
 
     def insert(self, table, k, v):
-        pass
+        cnt = len(self.group)
+
+        new_v = bin(int(v))[2:]
+        if len(new_v) != cnt:
+            new_v = '0' * (cnt - len(new_v)) + new_v
+
+        for i in range(cnt):
+            self.group[i].insert(table, k, new_v[i])
 
     def delete(self, k):
         pass
