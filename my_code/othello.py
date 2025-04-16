@@ -4,6 +4,7 @@ from math import log2, ceil
 import matplotlib.pyplot as plt
 import hashlib
 import random
+from common import Info
 
 hash_functions = [hashlib.sha1, hashlib.sha224, hashlib.sha256,
     hashlib.sha384, hashlib.sha3_512, hashlib.sha512]
@@ -90,13 +91,14 @@ class Othello:
 
         plt.show()
 
-    def check_edges_colors(self):
+    '''def check_edges_colors(self):
         "Позволяет посмотреть на узлы, ребра, их классы"
         cnt = 0
         for u, v, data in self.g.edges(data=True):
             print(f"{cnt}: Ребро {u} - {v}, Класс: {data['edge_class']}")
             cnt += 1
-
+    '''
+    
     def recolor_both_gray(self, t_k, u, v, i, j):
         self.a[i] = 0
         self.b[j] = t_k
@@ -120,7 +122,10 @@ class Othello:
             else:
                 self.g.nodes[u]['color'] = 'white'
 
-    def recolor(self):
+    def recolor(self, info=None):
+        if info is None:
+            info = Info()
+
         components = list(nx.connected_components(self.g))
         all_dfs_edges = []
         for component in components:
@@ -145,8 +150,12 @@ class Othello:
             elif self.g.nodes[u]['color'] != "gray" or self.g.nodes[v]['color'] != "gray":
                 #print('One of them are not gray')
                 self.recolor_not_gray(t_k, u, v, i, j) 
+            
+            info.memory += 2
             #print(u, v)
             #self.draw_graph()
+        
+        return info
 
     def construct(self, table):
         """Create and fill the whole structure of Othello based on MAC-VLAN table"""
@@ -197,17 +206,21 @@ class Othello:
 
 
     def insert(self, table, k, v):
+        info = Info(type='oth.insert')
         """Insert a key into Othello structure"""
         "Нужно передавать имеющуюся таблицу на случай невозможности добавить ключ и необходимости перестроения всей структуры"
+
+
 
         # Генерируем номера узлов через хеши
         left_node = int.from_bytes(self.ha(k.encode()).digest()) % self.hash_size
         right_node = int.from_bytes(self.hb(k.encode()).digest()) % self.hash_size
+        info.hash += 2
 
         left_node_sig = f"{left_node}_L"
         right_node_sig = f"{right_node}_R"
 
-        print(f'We are gonna add ребро {left_node_sig} - {right_node_sig}, класс = {v}')
+        #print(f'We are gonna add ребро {left_node_sig} - {right_node_sig}, класс = {v}')
         left_not_in = False
         right_not_in = False
 
@@ -232,16 +245,18 @@ class Othello:
 
         # case 1 - cycle
         if self.check_cycle():
-            print('Oh shit, make it again...')
+            print('RECONSTRUCT. Oh shit, make it again...')
             self.construct(table | {k:v})
         elif left_not_in and right_not_in: # case - просто новая компонента связности в графе
             self.recolor_both_gray(t_k, left_node_sig, right_node_sig, i, j)
-            print('Case both')
+            info.memory += 2
+            #print('Case both')
         elif left_not_in or right_not_in: # новая вершина в существующей компоненте связности
             self.recolor_not_gray(t_k, left_node_sig, right_node_sig, i, j)
-            print('Case one')
+            info.memory += 2
+            #print('Case one')
         else: # Новое ребро в существующей компоненте связности и при этом обе вершины уже существуют
-            print(f'Oh man, draw it from scratch again...')
+            #print(f'Oh man, recolor it...')
 
             left_nodes = [n for n, d in self.g.nodes(data=True) if d["bipartite"] == 0]
             right_nodes = [n for n, d in self.g.nodes(data=True) if d["bipartite"] == 1]
@@ -249,9 +264,11 @@ class Othello:
             node_colors.update({node: "gray" for node in right_nodes})  # Правые вершины
             nx.set_node_attributes(self.g, node_colors, "color")
             '''self.draw_graph()'''
-            self.recolor()
+            info = self.recolor(info)
 
         '''self.draw_graph()'''
+
+        return info
 
 
     def addX(self, k):
@@ -280,7 +297,7 @@ class Othello:
         #print(k)
         left_node_sig = f"{left_node}_L"
         right_node_sig = f"{right_node}_R"
-        print(f'DELETE {left_node_sig} {right_node_sig} with key {k}')
+        #print(f'DELETE {left_node_sig} {right_node_sig} with key {k}')
         
         self.g.remove_edge(left_node_sig, right_node_sig)
         

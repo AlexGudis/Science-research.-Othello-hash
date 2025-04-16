@@ -1,6 +1,7 @@
 from othello import Othello
 import bitarray
 import hashlib
+from common import Info
 
 class POG:
     def __init__(self):
@@ -52,22 +53,29 @@ class POG:
 
             specific_table = self.generate_table(table, cnt, i)
             
-            print(specific_table)
+            #print(specific_table)
 
             oth.construct(specific_table)
 
             self.group.append(oth)
 
     def insert(self, table, k, v):
+        info = Info(type='oth_pog.insert')
+
         cnt = len(self.group)
 
         new_v = bin(int(v))[2:]
         if len(new_v) != cnt:
             new_v = '0' * (cnt - len(new_v)) + new_v
 
+        
         for i in range(cnt):
-            self.group[i].insert(table, k, new_v[i])
-
+            #print(f'In pog insert: {k}, {new_v[i]}')
+            specific_table = self.generate_table(table, cnt, i)
+            info_oth = self.group[i].insert(specific_table, k, new_v[i])
+            info.memory += info_oth.memory
+        return info
+            
     def delete(self, k):
         for i in range(len(self.group)):
             self.group[i].delete(k)
