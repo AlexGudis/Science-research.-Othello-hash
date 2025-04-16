@@ -36,7 +36,7 @@ def test_correct(oth, json_dict, keys):
     cnt = 0
     for i in range(len(json_dict)):
        key = keys[i]
-       ans = oth.search(key)
+       ans = oth.search(key)[0]
 
        #print(ans,json_dict[key], key)
        if str(json_dict[key]) == str(ans):
@@ -58,17 +58,12 @@ pg.construct(json_dict)
 max_load = pg.group[0].ma
 n = len(json_dict)
 print(f'max_load = {max_load}, current_load = {n}')
-insert_memory_cnt = []
 # Добавляем недостающее число правил, чтобы загрузка каждой доли графа стала 90%
 for i in range(int((max_load * 0.9 - n))):
-    #try:
-        new_k, new_v = generate_kv()
-        info = pg.insert(json_dict, new_k, new_v)
-        print(f'ВСТАВКА. Кол-во обращений к памяти = {info.memory}')
-        json_dict[new_k] = new_v
-    #except ValueError:
-    #        print(f'В результате добавления ребра в одном из Отелло возник цикл и понадобилась его перестройка. Добавление {new_k}-{new_v} не выполнено. Тестирование остановлено')
-    #        exit()
+    new_k, new_v = generate_kv()
+    info = pg.insert(json_dict, new_k, new_v)
+    print(f'{i}/{int(max_load * 0.9 - n)} ВСТАВКА. Кол-во обращений к памяти = {info.memory}')
+    json_dict[new_k] = new_v
 
 print(f'Текущая загрузка доли графа: {len(json_dict)} / {max_load}')
 keys, values = get_keys(json_dict)
@@ -77,17 +72,36 @@ print(f'Correct is {cnt} of {len(json_dict)}')
 
 
 """Тестирование среднего числа обращений к памяти на операции ВСТАВКИ при 90% загрузке"""
-'''for _ in range(100):
-    #try:
-        new_k, new_v = generate_kv()
-        info = pg.insert(json_dict, new_k, new_v)
-        insert_memory_cnt.append(info.memory)
-        pg.delete(new_k)
-    #except ValueError: # Если будет ошибка добавления при вставке в одно из Отелло
-    #    print('Check mem on insert error')
-    #    exit()
-print(f'AVG mem_cnt on insert = {sum(insert_memory_cnt) / len(insert_memory_cnt)}')'''
+"""Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции УДАЛЕНИЕ при 90% загрузке"""
+insert_memory_cnt = []
+delete_mem_cnt = []
+delete_hash_cnt = []
+for _ in range(100):
+    new_k, new_v = generate_kv()
+    info_ins = pg.insert(json_dict, new_k, new_v)
+    insert_memory_cnt.append(info_ins.memory)
 
+    info_del = pg.delete(new_k)
+    delete_mem_cnt.append(info_del.memory)
+    delete_hash_cnt.append(info_del.hash)
+print(f'AVG mem_cnt on insert = {sum(insert_memory_cnt) / len(insert_memory_cnt)}')
+print(f'AVG mem_cnt on delete = {sum(delete_mem_cnt) / len(delete_mem_cnt)}')
+print(f'AVG hash_cnt on delete = {sum(delete_hash_cnt) / len(delete_hash_cnt)}')
+
+
+"""Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ПОИСКА при 90% загрузке"""
+search_memory_cnt = []
+search_hash_cnt = []
+for i in range(len(json_dict)):
+    key = keys[i]
+    ans, info = pg.search(key)
+    search_memory_cnt.append(info.memory)
+    search_hash_cnt.append(info.hash)
+    #print(ans,json_dict[key], key)
+    if str(json_dict[key]) == str(ans):
+        cnt += 1
+print(f'AVG mem_cnt on search = {sum(search_memory_cnt) / len(search_memory_cnt)}')
+print(f'AVG hash_cnt on search = {sum(search_hash_cnt) / len(search_hash_cnt)}')
 
 
 

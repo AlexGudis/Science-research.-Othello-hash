@@ -12,7 +12,7 @@ def test_correct(oth, json_dict, keys):
     cnt = 0
     for i in range(len(json_dict)):
        key = keys[i]
-       ans = oth.search(key)
+       ans = oth.search(key)[0]
 
        print(ans,json_dict[key], key)
        if str(json_dict[key]) == str(ans):

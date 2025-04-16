@@ -25,10 +25,14 @@ class Othello:
             f'Generated Othello structure with ma={ma}, mb={mb}, hash_size={self.hash_size}')
 
     def search(self, key):
+        info = Info(type='oth.search')
+
         """Found a value (dest port) for key in MAC-VLAN table"""
         i = int.from_bytes(self.ha(key.encode()).digest()) % self.hash_size
         j = int.from_bytes(self.hb(key.encode()).digest()) % self.hash_size
-        return self.a[i] ^ self.b[j]
+        info.hash += 2
+        info.memory += 2
+        return self.a[i] ^ self.b[j], info
 
     def check_cycle(self):
         """Checks if any cycle exists in graph g"""
@@ -285,12 +289,15 @@ class Othello:
 
     def delete(self, k):
         """Delete key from Othello structure"""
+        info = Info('oth.delete')
 
         '''self.draw_graph()'''
 
         # Генерируем номера узлов через хеши
         left_node = int.from_bytes(self.ha(k.encode()).digest()) % self.hash_size
         right_node = int.from_bytes(self.hb(k.encode()).digest()) % self.hash_size
+        info.hash += 2
+        info.memory += 0
 
         # Узлы без классов
         #print(self.g.edges)
@@ -302,3 +309,4 @@ class Othello:
         self.g.remove_edge(left_node_sig, right_node_sig)
         
         '''self.draw_graph()'''
+        return info

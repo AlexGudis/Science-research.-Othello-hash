@@ -9,14 +9,17 @@ class POG:
 
 
     def search(self, key):
-        
+        info = Info('pog.search')
         ans = ''
         for i in range(len(self.group)):
-            ans += str(self.group[i].search(key))
+            bit, info_oth = self.group[i].search(key)
+            ans += str(bit)
+            info.hash += info_oth.hash
+            info.memory += info_oth.memory
 
         #print(f'FOUND = {ans}')
 
-        return int(ans, 2)
+        return int(ans, 2), info
 
     def generate_table(self, table, cnt, i):
         specific_table = table.copy()
@@ -77,5 +80,11 @@ class POG:
         return info
             
     def delete(self, k):
+        info = Info(type='pog.delete')
+        
         for i in range(len(self.group)):
-            self.group[i].delete(k)
+            info_oth = self.group[i].delete(k)
+
+            info.memory += info_oth.memory
+            info.hash += info_oth.hash
+        return info
