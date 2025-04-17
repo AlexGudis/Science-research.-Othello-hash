@@ -14,7 +14,7 @@ def test_correct(oth, json_dict, keys):
        key = keys[i]
        ans = oth.search(key)[0]
 
-       print(ans,json_dict[key], key)
+       #print(ans,json_dict[key], key)
        if str(json_dict[key]) == str(ans):
               cnt += 1
 

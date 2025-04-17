@@ -131,23 +131,25 @@ class Othello:
                 self.g.nodes[u]['color'] = 'white'
 
 
-    def recolor_dfs(self, dfs_edges, info):
+    def recolor_dfs(self, dfs_edges, info, color_check=False):
         for u, v in dfs_edges:
             u_indexes = u.split('_')
             v_indexes = v.split('_')
             t_k = int(self.g[u][v]['edge_class'])
             i, j = int(u_indexes[0]), int(v_indexes[0])
             if self.g.nodes[u]['color'] == "gray" and self.g.nodes[v]['color'] == "gray":
-                #print('Both gray')
+                print('Both gray')
                 self.recolor_both_gray(t_k, u, v, i, j)
 
             elif self.g.nodes[u]['color'] != "gray" or self.g.nodes[v]['color'] != "gray":
-                #print('One of them are not gray')
+                print('One of them are not gray')
                 self.recolor_not_gray(t_k, u, v, i, j) 
             
             info.memory += 2
-            #print(u, v)
-            #self.draw_graph()
+
+            if color_check:
+                print(u, v)
+                self.draw_graph()
         return info
 
 
@@ -231,8 +233,10 @@ class Othello:
         """Insert a key into Othello structure"""
         "Нужно передавать имеющуюся таблицу на случай невозможности добавить ключ и необходимости перестроения всей структуры"
         
-        '''print('Current graph')
-        self.draw_graph()'''
+        print('Current graph')
+        #print(self.g.nodes())
+        print(self.g.edges())
+        self.draw_graph()
 
 
         # Генерируем номера узлов через хеши
@@ -243,21 +247,39 @@ class Othello:
         left_node_sig = f"{left_node}_L"
         right_node_sig = f"{right_node}_R"
 
-        '''print(f'We are gonna add ребро {left_node_sig} - {right_node_sig}, класс = {v}')'''
+        #print(self.g.edges())
+        
+        #prself.g[right_node_sig][left_node_sig]
+        already_exists = False
+        if (left_node_sig, right_node_sig) in self.g.edges():
+            print('Edge is IN the graph')
+            already_exists = True
+
+        print(f'We are gonna add ребро {left_node_sig} - {right_node_sig}, класс = {v}')
         left_not_in = False
         right_not_in = False
 
         # 3. Добавляем вершины в граф (если их ещё нет)
-        if left_node_sig not in self.g:
+        if left_node_sig not in self.g.nodes():
             left_not_in = True
             self.g.add_node(left_node_sig, bipartite=0, color="gray")
-        if right_node_sig not in self.g:
+        if right_node_sig not in self.g.nodes():
             right_not_in = True
             self.g.add_node(right_node_sig, bipartite=1, color="gray")
         
-        self.g.add_edge(left_node_sig, right_node_sig, edge_class=v)
 
-        '''self.draw_graph()'''
+        # Мы не должны забывать то ребро, которое было до добавления
+        ''''''''''''''''''''''''''''''
+        self.g.add_edge(left_node_sig, right_node_sig, edge_class=v)
+        #print(self.g)
+
+        recolor = False
+        if not already_exists:
+            if v == '1' and self.g.nodes[left_node_sig]['color'] == self.g.nodes[right_node_sig]['color'] or v == '0' and self.g.nodes[left_node_sig]['color'] != self.g.nodes[right_node_sig]['color']:
+                recolor = True
+
+        self.draw_graph()
+        print(f'left_not_in = {left_not_in}, right_not_in = {right_not_in}')
 
         #print([self.g.nodes[node] for node in self.g.nodes])
 
@@ -265,10 +287,16 @@ class Othello:
         v_indexes = right_node_sig.split('_')
         t_k = int(v)
         i, j = int(u_indexes[0]), int(v_indexes[0])
+        t_k = int(v)
 
         # case 1 - cycle
         # Или мы добавляем ребро, которое уже есть в графе, значит, возникает цикл длины 2
-        if self.check_cycle() or (left_not_in == False and right_not_in == False):
+
+        '''Да, добавляемое ребро УЖЕ может быть в графе и формально это цикл длины 2, но 
+        мы не перестраиваем (перекрашиваем) структуру, если корректно установлены биты'''
+
+
+        if self.check_cycle() or (already_exists):
             print('RECONSTRUCT. Oh shit, make it again...')
             info_check = self.construct(table | {k:v})
             info.hash += info_check.hash
@@ -276,28 +304,106 @@ class Othello:
         elif left_not_in and right_not_in: # case - просто новая компонента связности в графе
             self.recolor_both_gray(t_k, left_node_sig, right_node_sig, i, j)
             info.memory += 2
-            #print('Case both')
+            print('Case both')
         elif left_not_in or right_not_in: # новая вершина в существующей компоненте связности
             self.recolor_not_gray(t_k, left_node_sig, right_node_sig, i, j)
             info.memory += 2
-            #print('Case one')
-        #elif int(self.g[right_node_sig][left_node_sig]['edge_class']) != t_k: # Новое ребро в существующей компоненте связности и при этом обе вершины уже существуют и при этом класс ребра некорректный
-        else:
+            print('Case one')
+        elif recolor: # Новое ребро в существующей компоненте связности и при этом обе вершины уже существуют и при этом класс ребра некорректный
             print(f'Oh man, recolor it...')
             print(self.g[right_node_sig][left_node_sig])
 
-            dfs_edges = []
+            '''dfs_edges = []
             for component in nx.connected_components(self.g):
                 if left_node_sig in component or right_node_sig in component:
                     # Подграф с только этой компонентой
                     subgraph = self.g.subgraph(component)
                     dfs_edges = subgraph.edges()
-                    break
+                    break'''
                     
-            #print(dfs_edges)
-            info = self.recolor_dfs(dfs_edges, info)
+            dfs_edges = list(nx.dfs_edges(self.g, source=left_node_sig))
 
-        '''self.draw_graph()'''
+            def is_L(node):
+                return str(node).endswith('_L')
+
+            def sort_edge(u, v):
+                return (u, v) if is_L(u) else (v, u)
+            
+
+            def dfs_one_direction_edges(G, start_node, exclude_node):
+                visited = set()
+                stack = [start_node]
+                result = []
+
+                while stack:
+                    u = stack.pop()
+                    if u in visited:
+                        continue
+                    visited.add(u)
+                    for v in G[u]:
+                        if v == exclude_node or v in visited:
+                            continue
+                        result.append(sort_edge(u, v))
+                        stack.append(v)
+                return result
+            
+            #edges_in_order = dfs_one_direction_edges(self.g, start_node=left_node_sig, exclude_node=right_node_sig)
+            #edges_in_order.insert(0, (left_node_sig, right_node_sig))
+            dfs_sorted_edges = [sort_edge(u, v) for u, v in dfs_edges]
+            #dfs_sorted_edges.sort()
+            #print(dfs_sorted_edges)
+            print([(ll,rr,self.g[ll][rr]['edge_class']) for ll, rr in dfs_sorted_edges])
+
+
+            already_seen = set() # Если вершины ещё не было, то её и перекрашиваю
+            for u, v in dfs_sorted_edges:
+                u_indexes = u.split('_')
+                v_indexes = v.split('_')
+                t_k = int(self.g[u][v]['edge_class'])
+                i, j = int(u_indexes[0]), int(v_indexes[0])
+                print()
+                print(self.a[i], self.b[j])
+                print(f'u_color = {self.g.nodes[u]['color']}, v_color = {self.g.nodes[v]['color']}, t_k = {t_k}')
+                if (self.g.nodes[u]['color'] != self.g.nodes[v]['color'] and t_k == 0) or (self.g.nodes[u]['color'] == self.g.nodes[v]['color'] and t_k == 1):
+                    # Нужно перекрашивать это ребро
+                    print('Color them')
+                    if u not in already_seen:
+                        self.a[i] = self.b[j] ^ t_k
+                        #already_seen.append(u)
+                        if self.a[i]:
+                            self.g.nodes[u]['color'] = 'black'
+                        else:
+                            self.g.nodes[u]['color'] = 'white'
+                    elif v not in already_seen:
+                        self.b[j] = self.a[i] ^ t_k
+                        #already_seen.append(v)
+                        if self.b[j]:
+                            self.g.nodes[v]['color'] = 'black'
+                        else:
+                            self.g.nodes[v]['color'] = 'white'
+                already_seen.add(u)
+                already_seen.add(v)
+                print(u, v)
+                print(self.a[i], self.b[j])
+                print(already_seen)
+                self.draw_graph()
+                info.memory += 2
+
+
+            
+
+            #info = self.recolor_dfs(dfs_sorted_edges, info, color_check=True)
+        else:
+            #info_check = self.construct(table | {k:v})
+            #info.hash += info_check.hash
+            #info.memory += info_check.memory
+            print('Nothing to do')
+            #print() 
+            #print(t_k)
+            print(f'Current class = {self.g[right_node_sig][left_node_sig]} /// and wanted class = {t_k}')
+            pass
+
+        self.draw_graph()
 
         return info
 

@@ -77,6 +77,7 @@ class POG:
             specific_table = self.generate_table(table, cnt, i)
             info_oth = self.group[i].insert(specific_table, k, new_v[i])
             info.memory += info_oth.memory
+            info.hash += info_oth.hash
         return info
             
     def delete(self, k):

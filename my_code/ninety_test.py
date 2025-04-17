@@ -28,7 +28,7 @@ def generate_kv():
     mac = generate_mac()
     vlan = generate_vlan()
     key = f"{mac}-{vlan}"
-    value = str(random.randint(0, 30))  # Порт
+    value = str(random.randint(0, 50))  # Порт
     return key, value
 
 
@@ -54,7 +54,7 @@ keys, values = get_keys(json_dict)
 pg = pog.POG()
 pg.construct(json_dict)
 
-'''Вычисление, сколько элементов надо добавить для текущих размеров Отелло, чтобы загрузка стала 90'''
+'''Вычисление, сколько элементов надо добавить для текущих размеров Отелло, чтобы загрузка стала 90%'''
 max_load = pg.group[0].ma
 n = len(json_dict)
 print(f'max_load = {max_load}, current_load = {n}')
@@ -71,22 +71,28 @@ cnt = test_correct(pg, json_dict, keys)
 print(f'Correct is {cnt} of {len(json_dict)}')
 
 
-"""Тестирование среднего числа обращений к памяти на операции ВСТАВКИ при 90% загрузке"""
+"""Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ВСТАВКИ при 90% загрузке"""
 """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции УДАЛЕНИЕ при 90% загрузке"""
 insert_memory_cnt = []
+insert_hash_cnt = []
 delete_mem_cnt = []
 delete_hash_cnt = []
 for _ in range(100):
     new_k, new_v = generate_kv()
     info_ins = pg.insert(json_dict, new_k, new_v)
     insert_memory_cnt.append(info_ins.memory)
+    insert_hash_cnt.append(info_ins.hash)
 
     info_del = pg.delete(new_k)
     delete_mem_cnt.append(info_del.memory)
     delete_hash_cnt.append(info_del.hash)
+
 print(f'AVG mem_cnt on insert = {sum(insert_memory_cnt) / len(insert_memory_cnt)}')
+print(f'AVG hash_cnt on insert = {sum(insert_hash_cnt) / len(insert_hash_cnt)}')
+
 print(f'AVG mem_cnt on delete = {sum(delete_mem_cnt) / len(delete_mem_cnt)}')
 print(f'AVG hash_cnt on delete = {sum(delete_hash_cnt) / len(delete_hash_cnt)}')
+
 
 
 """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ПОИСКА при 90% загрузке"""
@@ -102,6 +108,11 @@ for i in range(len(json_dict)):
         cnt += 1
 print(f'AVG mem_cnt on search = {sum(search_memory_cnt) / len(search_memory_cnt)}')
 print(f'AVG hash_cnt on search = {sum(search_hash_cnt) / len(search_hash_cnt)}')
+
+
+keys, values = get_keys(json_dict)
+cnt = test_correct(pg, json_dict, keys)
+print(f'Correct is {cnt} of {len(json_dict)}')
 
 
 
