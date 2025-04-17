@@ -52,8 +52,8 @@ print(f'Correct is {cnt} of {len(json_dict)}')
 
 x = input()
 
-pg.insert(json_dict, "EC:94:9F:FG:A8:37-2051", "17")
-json_dict["EC:94:9F:FG:A8:37-2051"] = '17'
+pg.insert(json_dict, "EC:94:9F:FG:A8:37-2051", "3")
+json_dict["EC:94:9F:FG:A8:37-2051"] = '3'
 keys, values = get_keys(json_dict)
 cnt = test_correct(pg, json_dict, keys)
 print(f'Correct is {cnt} of {len(json_dict)}')
