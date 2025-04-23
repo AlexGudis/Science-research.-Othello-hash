@@ -22,6 +22,54 @@ class HashTab():
         return x % self.size // 2, y % self.size // 2
     
 
+
+
+    # return string representation of both tables
+    def __str__(self):
+        str1 = "Table 1: [ " + str(self.array1[0]) 
+        str2 = " Table 2: [ " + str(self.array2[0]) 
+        for i in range(1, self.size):
+            str1 += ", " + str(self.array1[i])
+        str1 += "]"
+
+        for i in range(1, self.size):
+           str2 += ", " + str(self.array2[i]) 
+        str2 += "]"
+        
+        return str1 + str2 
+    
+
+
+    # get new hash functions and reinsert everything 
+    def rehash(self, size):
+        self.hash1, self.hash2 = random.sample(hash_functions, 2)          # get new hash functions
+        
+        temp = HashTab(size)    # create new hash tables
+
+        # re-hash each item and insert it into the correct position in the new tables
+        for i in range(self.size // 2):
+            x = self.array1[i]
+            y = self.array2[i]
+            if x != None:
+                temp.insert(x.key, x.data)
+            if y != None:
+                temp.insert(y.key, y.data)
+
+        # save new tables 
+        self.array1 = temp.array1
+        self.array2 = temp.array2
+        self.keys_cnt = temp.keys_cnt
+        self.size = temp.size
+
+
+    # Increase the hash table's size x 2 
+    def growHash(self):
+        newSize = self.size * 2
+        # re-hash each item and insert it into the
+        # correct position in the new table
+        self.rehash(newSize)
+    
+
     # Return data if there, otherwise return None
     def find(self, k):
         pos1, pos2 = self.hashFunc(k)               # check both positions the key/data
