@@ -4,6 +4,7 @@
 import json
 import pog
 import random
+import time
 
 def get_keys(json_dict):
     keys = []
@@ -28,7 +29,7 @@ def generate_kv():
     mac = generate_mac()
     vlan = generate_vlan()
     key = f"{mac}-{vlan}"
-    value = str(random.randint(0, 50))  # Порт
+    value = str(random.randint(0, 5))  # Порт
     return key, value
 
 
@@ -62,7 +63,7 @@ print(f'max_load = {max_load}, current_load = {n}')
 for i in range(int((max_load * 0.9 - n))):
     new_k, new_v = generate_kv()
     info = pg.insert(json_dict, new_k, new_v)
-    print(f'{i}/{int(max_load * 0.9 - n)} ВСТАВКА. Кол-во обращений к памяти = {info.memory}')
+    #print(f'{i}/{int(max_load * 0.9 - n)} ВСТАВКА. Кол-во обращений к памяти = {info.memory}')
     json_dict[new_k] = new_v
 
 print(f'Текущая загрузка доли графа: {len(json_dict)} / {max_load}')
@@ -75,13 +76,19 @@ print(f'Correct is {cnt} of {len(json_dict)}')
 """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции УДАЛЕНИЕ при 90% загрузке"""
 insert_memory_cnt = []
 insert_hash_cnt = []
+insert_time = []
+
 delete_mem_cnt = []
 delete_hash_cnt = []
 for _ in range(100):
     new_k, new_v = generate_kv()
+
+    start_t = time.time()
     info_ins = pg.insert(json_dict, new_k, new_v)
+    finish_t = time.time()
     insert_memory_cnt.append(info_ins.memory)
     insert_hash_cnt.append(info_ins.hash)
+    insert_time.append(finish_t - start_t)
 
     info_del = pg.delete(new_k)
     delete_mem_cnt.append(info_del.memory)
@@ -89,6 +96,7 @@ for _ in range(100):
 
 print(f'AVG mem_cnt on insert = {sum(insert_memory_cnt) / len(insert_memory_cnt)}')
 print(f'AVG hash_cnt on insert = {sum(insert_hash_cnt) / len(insert_hash_cnt)}')
+print(f'AVG TIME on insert = {sum(insert_time) / len(insert_time)}')
 
 print(f'AVG mem_cnt on delete = {sum(delete_mem_cnt) / len(delete_mem_cnt)}')
 print(f'AVG hash_cnt on delete = {sum(delete_hash_cnt) / len(delete_hash_cnt)}')

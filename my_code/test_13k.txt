@@ -1,0 +1,35 @@
+(my_code) alexgud@alexgud-NBD-WXX9:~/study/msu/kurs3/Science-research.-Othello-hash/my_code$ python3 generate_test.py -n 11117
+Файл mac_vlan_mapping.json сгенерирован.
+(my_code) alexgud@alexgud-NBD-WXX9:~/study/msu/kurs3/Science-research.-Othello-hash/my_code$ python3 ninety_test.py 
+Generated Othello structure with ma=14785, mb=14785, hash_size=14785
+START or cycle found
+Generated Othello structure with ma=14785, mb=14785, hash_size=14785
+START or cycle found
+Generated Othello structure with ma=14785, mb=14785, hash_size=14785
+START or cycle found
+max_load = 14785, current_load = 11117
+RECONSTRUCT. Oh shit, make it again...
+START or cycle found
+RECONSTRUCT. Oh shit, make it again...
+START or cycle found
+Cycle in edges found => switching hash func
+START or cycle found
+START or cycle found
+Текущая загрузка доли графа: 13306 / 14785
+Correct is 13306 of 13306
+RECONSTRUCT. Oh shit, make it again...
+START or cycle found
+RECONSTRUCT. Oh shit, make it again...
+START or cycle found
+START or cycle found
+Cycle in edges found => switching hash func
+START or cycle found
+START or cycle found
+AVG mem_cnt on insert = 565.46
+AVG hash_cnt on insert = 1336.7
+AVG TIME on insert = 0.199997718334198
+AVG mem_cnt on delete = 0.0
+AVG hash_cnt on delete = 6.0
+AVG mem_cnt on search = 6.0
+AVG hash_cnt on search = 6.0
+Correct is 13306 of 13306
