@@ -1,8 +1,12 @@
 import hashlib
-import random
+import random, json
+from common import get_keys, generate_kv, Info
+import time
 
 hash_functions = [hashlib.sha1, hashlib.sha224, hashlib.sha256,
                   hashlib.sha384, hashlib.sha3_512, hashlib.sha512]
+
+
 
 
 load = 35
@@ -28,24 +32,16 @@ class HashTab():
     # return current number of keys in table    
     def __len__(self): return self.keys_cnt
 
-
-    def test_corr(self):
-        missing = 0
-        for i in range(load):
-            ans = self.find(str(i)+"foobarbaz")
-            if ans == None or ans != i:
-                #print(i, "Couldn't find key", str(i)+"foobarbaz")
-                missing += 1
-            
-        print("There were", missing, "records missing from Cuckoo")
-
-
     # insert and return true, return False if the key/data is already there,
     # grow the table if necessary 
     def insert(self, k, d):
         #self.test_corr(40)
+        info = Info('cuko.ins')
 
-        if self.find(k) != None:  return False   # if already there, return False (no duplicates)
+        res, find_inf = self.find(k)
+        if res != None:  return False, info   # if already there, return False (no duplicates)
+        info.hash += find_inf.hash
+        info.memory += find_inf.memory
 
         n = Node(k, d)                           # create a new node with key/data
 
@@ -55,6 +51,7 @@ class HashTab():
         #    self.growHash()
         
         position1, position2 = self.hashFunc(n.key)  # hash
+        info.hash += 2
         # start the loop checking the 1st position in table 1
         pos = position1
         table = self.array1
@@ -66,10 +63,12 @@ class HashTab():
             if table[pos] == None:               # if the position in the current table is empty
                 table[pos] = n                   # insert the node there and return True
                 self.keys_cnt += 1
-                return True
+                return True, info
+            info.memory += 1
             
             n, table[pos] = table[pos], n       # else, evict item in pos and insert the item
                                                 # then deal with the displaced node.
+            info.memory += 1
 
             if pos == position1:                            # if we're checking the 1st table right now, 
                 position1, position2 = self.hashFunc(n.key) # hash the displaced node,
@@ -79,6 +78,7 @@ class HashTab():
                 position1, position2 = self.hashFunc(n.key) # otherwise, hash the displaced node,
                 pos == position1                            # and check the 1st table position. 
                 table = self.array1
+            info.hash += 2
 
 
         # This line will never be executed due to infinite loop above
@@ -86,10 +86,13 @@ class HashTab():
         #self.growHash()               # grow and rehash if we make it here. No grow, we want 90% loadfactor  
         
         #print('REHASH')
-        self.rehash(self.size)                           
-        self.insert(n.key, n.data)      # deal with evicted item
+        info_reh = self.rehash(self.size)                           
+        res, info_ins = self.insert(n.key, n.data)      # deal with evicted item
+        
+        info.hash += info_reh.hash + info_ins.hash
+        info.memory += info_reh.memory + info_ins.memory
 
-        return True
+        return True, info
 
     
     def hashFunc(self, s):
@@ -121,26 +124,34 @@ class HashTab():
     def rehash(self, size):        
         temp = HashTab(size)    # create new hash tables
         temp.hash1, temp.hash2 = random.sample(hash_functions, 2)   # get new hash functions
-        
+        info = Info('cuko.reh')
 
         # re-hash each item and insert it into the correct position in the new tables
         for i in range(self.size // 2):
             x = self.array1[i]
             y = self.array2[i]
+            info.memory += 2
             if x != None:
                 #print(f'INSERTING = {x.key}, {x.data}')
-                temp.insert(x.key, x.data)
+                res, info_ins = temp.insert(x.key, x.data)
+                info.memory += info_ins.memory
+                info.hash += info_ins.hash
             if y != None:
                 #print(f'INSERTING = {y.key}, {y.data}')
-                temp.insert(y.key, y.data)
+                res, info_ins = temp.insert(y.key, y.data)
+                info.memory += info_ins.memory
+                info.hash += info_ins.hash
 
         # save new tables S
+        # Здесь ведь по идее много обращений к памяти...
         self.array1 = temp.array1
         self.array2 = temp.array2
         self.keys_cnt = temp.keys_cnt
         self.size = temp.size
         self.hash1 = temp.hash1
         self.hash2 = temp.hash2
+        
+        return info
 
 
     # Increase the hash table's size x 2 
@@ -153,97 +164,110 @@ class HashTab():
 
     # Return data if there, otherwise return None
     def find(self, k):
+        info = Info('cuko.find')
+
         pos1, pos2 = self.hashFunc(k)               # check both positions the key/data
+        info.hash += 2
         x = self.array1[pos1]                       # could be in. return data if found.
         y = self.array2[pos2]  
-
-        #try:
-        #    print(f'x = {x.key}-{x.value}, y = {y.key}-{y.value} for KEY {k}')   
-        #except AttributeError:
-        #    pass            
+        info.memory += 2         
         
-        if x != None and x.key == k:  return x.data
-        if y != None and y.key == k:  return y.data
+        if x != None and x.key == k:  return x.data, info
+        if y != None and y.key == k:  return y.data, info
     
         # return None if the key can't be found     
-        return None
+        return None, info
     
 
     # delete the node associated with that key and return True on success
     def delete(self, k):
+        info = Info('cuko.del')
         pos1, pos2 = self.hashFunc(k)  
+        info.hash += 2
         x = self.array1[pos1]
         y = self.array2[pos2]
+        info.memory += 2
         if  x != None and  x.key == k:  self.array1[pos1] = None
         elif y != None and y.key == k:  self.array2[pos2] = None
-        else:   return False   # the key wasnt found in either possible position
+        else:   return False, info   # the key wasnt found in either possible position
         self.keys_cnt -= 1 
-        return True
+        return True, info
     
 
 
 def test():
-    size = load
+    size = 20
     missing = 0
     found = 0 
-    
+
+    with open('mac_vlan_mapping.json', 'r') as JSON:
+        json_dict = json.load(JSON)
+
+    keys, values = get_keys(json_dict)
     # create a hash table with an initially small number of bukets
-    c = HashTab(100)
-    
-    # Now insert size key/data pairs, where the key is a string consisting
-    # of the concatenation of "foobarbaz" and i, and the data is i
+    cuko = HashTab(100)
     inserted = 0
     find_after = 0
+
     for i in range(size):
-        #print(f'Inserting {i} / {size}') 
-        if c.insert(str(i)+"foobarbaz", i):
+        if cuko.insert(keys[i], values[i]):
             inserted += 1
 
-        ans = c.find(str(i)+"foobarbaz")
-        if ans == i:
+        #print(f'Inserted = {inserted}')
+
+        ans, info = cuko.find(keys[i])
+        if ans == values[i]:
             find_after += 1
         else:
-            print(f'ERROR: {str(i)+"foobarbaz"}')
-        
-    print("There were", inserted, "nodes successfully inserted")
-    print(f"Totally correctly inserted = {find_after}")
-        
-        
-    # Make sure that all key data pairs that we inserted can be found in the
-    # hash table. This ensures that resizing the number of buckets didn't 
-    # cause some key/data pairs to be lost.
-    for i in range(size):
-        ans = c.find(str(i)+"foobarbaz")
-        if ans == None or ans != i:
-            #print(i, "Couldn't find key", str(i)+"foobarbaz")
-            missing += 1
-            
-    print("There were", missing, "records missing from Cuckoo")
+            print(f'ERROR with k-v pair: {keys[i]}---{values[i]}')
     
-    # Makes sure that all key data pairs were successfully deleted 
-    '''for i in range(size): 
-           c.delete(str(i)+"foobarbaz")
-        
-    for i in range(size): 
-        ans = c.find(str(i)+"foobarbaz") 
-        if ans != None or ans == i: 
-            print(i, "Couldn't delete key", str(i)+"foobarbaz") 
-            found += 1
-    print("There were", found, "records not deleted from Cuckoo") '''
+    print(f'Correct is {find_after} of {size}')
 
 
+    """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ВСТАВКИ"""
+    """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции УДАЛЕНИЕ"""
+    insert_memory_cnt = []
+    insert_hash_cnt = []
+    insert_time = []
 
-    print("REHASH")
-    c.rehash(100)
+    delete_mem_cnt = []
+    delete_hash_cnt = []
+    for _ in range(100):
+        new_k, new_v = generate_kv()
 
+        start_t = time.time()
+        res, info_ins = cuko.insert(new_k, new_v)
+        finish_t = time.time()
+        insert_memory_cnt.append(info_ins.memory)
+        insert_hash_cnt.append(info_ins.hash)
+        insert_time.append(finish_t - start_t)
+
+        res, info_del = cuko.delete(new_k)
+        delete_mem_cnt.append(info_del.memory)
+        delete_hash_cnt.append(info_del.hash)
+
+    print(f'AVG mem_cnt on insert = {sum(insert_memory_cnt) / len(insert_memory_cnt)}')
+    print(f'AVG hash_cnt on insert = {sum(insert_hash_cnt) / len(insert_hash_cnt)}')
+    print(f'AVG TIME on insert = {sum(insert_time) / len(insert_time)}')
+
+    print(f'AVG mem_cnt on delete = {sum(delete_mem_cnt) / len(delete_mem_cnt)}')
+    print(f'AVG hash_cnt on delete = {sum(delete_hash_cnt) / len(delete_hash_cnt)}')
+
+
+    """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ПОИСКА"""
+    search_memory_cnt = []
+    search_hash_cnt = []
+    cnt = 0
     for i in range(size):
-        ans = c.find(str(i)+"foobarbaz")
-        if ans == None or ans != i:
-            print(i, "Couldn't find key", str(i)+"foobarbaz")
-            missing += 1
-            
-    print("There were", missing, "records missing from Cuckoo")
-    #c.test_corr()
+        ans, info = cuko.find(keys[i])
+        search_memory_cnt.append(info.memory)
+        search_hash_cnt.append(info.hash)
+        if ans == values[i]:
+            cnt += 1
+    print(f'AVG mem_cnt on search = {sum(search_memory_cnt) / len(search_memory_cnt)}')
+    print(f'AVG hash_cnt on search = {sum(search_hash_cnt) / len(search_hash_cnt)}')
+    print(f'Correct is {cnt} of {size}')
+
 
 def main():
     test()
