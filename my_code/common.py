@@ -1,5 +1,48 @@
 import random
+import matplotlib.pyplot as plt
 
+
+def draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time):
+    # 1. Обращения к памяти
+    plt.figure(figsize=(6, 4))
+    plt.bar(['Вставка', 'Удаление', 'Поиск'], [avg_insert_mem, avg_delete_mem, avg_search_mem], color=['skyblue', 'salmon', 'pink'], width=0.4)
+    plt.title('Среднее число обращений к памяти')
+    plt.ylabel('Число обращений')
+    plt.grid(True, linestyle='--', alpha=0.5)
+    for i, v in enumerate([avg_insert_mem, avg_delete_mem, avg_search_mem]):
+        plt.text(i, v + 0.5, f'{v:.2f}', ha='center')
+    plt.tight_layout()
+    max_val = max(avg_insert_mem, avg_delete_mem, avg_search_mem)
+    plt.ylim(0, max_val * 1.2)
+    plt.savefig('oth_memory.png')
+    plt.show()
+
+    # 2. Вызовы хеш-функции
+    plt.figure(figsize=(6, 4))
+    plt.bar(['Вставка', 'Удаление', 'Поиск'], [avg_insert_hash, avg_delete_hash, avg_search_hash], color=['skyblue', 'salmon', 'pink'], width=0.4)
+    plt.title('Среднее число вызовов хеш-функции')
+    plt.ylabel('Число вызовов')
+    plt.grid(True, linestyle='--', alpha=0.5)
+    for i, v in enumerate([avg_insert_hash, avg_delete_hash, avg_search_hash]):
+        plt.text(i, v + 0.5, f'{v:.2f}', ha='center')
+    plt.tight_layout()
+    max_val = max(avg_insert_hash, avg_delete_hash, avg_search_hash)
+    plt.ylim(0, max_val * 1.2)
+    plt.savefig('oth_hash.png')
+    plt.show()
+
+    # 3. Время вставки
+    plt.figure(figsize=(6, 4))
+    plt.bar(['Вставка'], [avg_insert_time], color='skyblue', width=0.01)
+    plt.title('Среднее время выполнения вставки')
+    plt.ylabel('Время (сек)')
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.text(0, avg_insert_time + 0.0001, f'{avg_insert_time:.6f}', ha='center')
+    plt.tight_layout()
+    max_val = max([avg_insert_time])
+    plt.ylim(0, max_val * 1.2)
+    plt.savefig('oth_time.png')
+    plt.show()
 
 def get_keys(json_dict):
     keys = []
