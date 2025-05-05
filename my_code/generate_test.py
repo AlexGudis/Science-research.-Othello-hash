@@ -1,14 +1,7 @@
 import json
 import random
 import argparse
-
-def generate_mac():
-    """Генерирует случайный MAC-адрес."""
-    return ':'.join(f"{random.randint(0, 255):02X}" for _ in range(6))
-
-def generate_vlan():
-    """Генерирует случайный VLAN ID (от 1 до 4095)."""
-    return random.randint(1, 4095)
+from common import generate_mac, generate_vlan
 
 def generate_json(filename="output.json", num_entries=10):
     """Генерирует JSON-файл с парами MAC-VLAN и случайными значениями портов."""
