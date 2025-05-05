@@ -2,7 +2,21 @@ import random
 import matplotlib.pyplot as plt
 
 
-def draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time):
+def test_info(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time):
+    print(f'AVG mem_cnt on insert = {avg_insert_mem}')
+    print(f'AVG hash_cnt on insert = {avg_insert_hash}')
+    print(f'AVG TIME on insert = {avg_insert_time}\n')
+
+    print(f'AVG mem_cnt on search = {avg_search_mem}')
+    print(f'AVG hash_cnt on search = {avg_search_hash}\n')
+
+    print(f'AVG mem_cnt on delete = {avg_delete_mem}')
+    print(f'AVG hash_cnt on delete = {avg_delete_hash}\n')
+
+
+
+
+def draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time, name):
     # 1. Обращения к памяти
     plt.figure(figsize=(6, 4))
     plt.bar(['Вставка', 'Удаление', 'Поиск'], [avg_insert_mem, avg_delete_mem, avg_search_mem], color=['skyblue', 'salmon', 'pink'], width=0.4)
@@ -14,7 +28,7 @@ def draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_de
     plt.tight_layout()
     max_val = max(avg_insert_mem, avg_delete_mem, avg_search_mem)
     plt.ylim(0, max_val * 1.2)
-    plt.savefig('oth_memory.png')
+    plt.savefig(f'{name}_memory.png')
     plt.show()
 
     # 2. Вызовы хеш-функции
@@ -28,7 +42,7 @@ def draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_de
     plt.tight_layout()
     max_val = max(avg_insert_hash, avg_delete_hash, avg_search_hash)
     plt.ylim(0, max_val * 1.2)
-    plt.savefig('oth_hash.png')
+    plt.savefig(f'{name}_hash.png')
     plt.show()
 
     # 3. Время вставки
@@ -41,7 +55,7 @@ def draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_de
     plt.tight_layout()
     max_val = max([avg_insert_time])
     plt.ylim(0, max_val * 1.2)
-    plt.savefig('oth_time.png')
+    plt.savefig(f'{name}_time.png')
     plt.show()
 
 def get_keys(json_dict):

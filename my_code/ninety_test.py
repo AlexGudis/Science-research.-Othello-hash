@@ -5,7 +5,7 @@ import json
 import pog
 import random
 import time
-from common import get_keys, generate_mac, generate_vlan, generate_kv, draw
+from common import get_keys, generate_mac, generate_vlan, generate_kv, draw, test_info
 import numpy as np
 
 
@@ -70,7 +70,6 @@ for _ in range(100):
     delete_hash_cnt.append(info_del.hash)
 
 
-
 """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ПОИСКА при 90% загрузке"""
 search_memory_cnt = []
 search_hash_cnt = []
@@ -94,18 +93,8 @@ avg_search_hash = sum(search_hash_cnt) / len(search_hash_cnt)
 avg_insert_time = sum(insert_time) / len(insert_time)
 
 
-print(f'AVG mem_cnt on insert = {avg_insert_mem}')
-print(f'AVG hash_cnt on insert = {avg_insert_hash}')
-print(f'AVG TIME on insert = {avg_insert_time}\n')
-
-print(f'AVG mem_cnt on search = {avg_search_mem}')
-print(f'AVG hash_cnt on search = {avg_search_hash}\n')
-
-print(f'AVG mem_cnt on delete = {avg_delete_mem}')
-print(f'AVG hash_cnt on delete = {avg_delete_hash}\n')
-
-
-draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time)
+test_info(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time)
+draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time, name='oth')
 
 
 

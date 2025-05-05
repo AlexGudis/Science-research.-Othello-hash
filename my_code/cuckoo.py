@@ -1,6 +1,6 @@
 import hashlib
 import random, json
-from common import get_keys, generate_kv, Info
+from common import get_keys, generate_kv, Info, test_info, draw
 import time
 
 hash_functions = [hashlib.sha1, hashlib.sha224, hashlib.sha256,
@@ -196,7 +196,7 @@ class HashTab():
 
 
 def test():
-    size = 20
+    size = 40
     missing = 0
     found = 0 
 
@@ -205,7 +205,7 @@ def test():
 
     keys, values = get_keys(json_dict)
     # create a hash table with an initially small number of bukets
-    cuko = HashTab(100)
+    cuko = HashTab(110)
     inserted = 0
     find_after = 0
 
@@ -246,13 +246,6 @@ def test():
         delete_mem_cnt.append(info_del.memory)
         delete_hash_cnt.append(info_del.hash)
 
-    print(f'AVG mem_cnt on insert = {sum(insert_memory_cnt) / len(insert_memory_cnt)}')
-    print(f'AVG hash_cnt on insert = {sum(insert_hash_cnt) / len(insert_hash_cnt)}')
-    print(f'AVG TIME on insert = {sum(insert_time) / len(insert_time)}')
-
-    print(f'AVG mem_cnt on delete = {sum(delete_mem_cnt) / len(delete_mem_cnt)}')
-    print(f'AVG hash_cnt on delete = {sum(delete_hash_cnt) / len(delete_hash_cnt)}')
-
 
     """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ПОИСКА"""
     search_memory_cnt = []
@@ -264,8 +257,20 @@ def test():
         search_hash_cnt.append(info.hash)
         if ans == values[i]:
             cnt += 1
-    print(f'AVG mem_cnt on search = {sum(search_memory_cnt) / len(search_memory_cnt)}')
-    print(f'AVG hash_cnt on search = {sum(search_hash_cnt) / len(search_hash_cnt)}')
+
+    avg_insert_mem = sum(insert_memory_cnt) / len(insert_memory_cnt)
+    avg_delete_mem = sum(delete_mem_cnt) / len(delete_mem_cnt)
+    avg_search_mem = sum(search_memory_cnt) / len(search_memory_cnt)
+
+    avg_insert_hash = sum(insert_hash_cnt) / len(insert_hash_cnt)
+    avg_delete_hash = sum(delete_hash_cnt) / len(delete_hash_cnt)
+    avg_search_hash = sum(search_hash_cnt) / len(search_hash_cnt)
+
+    avg_insert_time = sum(insert_time) / len(insert_time)
+
+    test_info(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time)
+    draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time, name='cuko')
+
     print(f'Correct is {cnt} of {size}')
 
 
