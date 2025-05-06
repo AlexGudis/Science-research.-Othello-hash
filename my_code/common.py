@@ -47,7 +47,11 @@ def draw():
     bar_width = 0.2
     x = np.arange(len(labels))
 
-    def plot_comparison(title, y_label, keys, colors, filename):
+    def clean_log_values(values, min_value=1e-6):
+        return [v if v > 0 else min_value for v in values]
+
+
+    def plot_comparison(title, y_label, keys, colors, filename, use_log_scale=False):
         plt.figure(figsize=(9, 5))
         for i, key in enumerate(keys):
             offset = (i - 1) * bar_width  # -0.2, 0, +0.2
@@ -65,9 +69,21 @@ def draw():
         plt.legend()
         plt.grid(True, linestyle='--', alpha=0.4)
         plt.tight_layout()
-        plt.ylim(0, max(max(avg_data[k]) for k in keys) * 1.25)  # запас сверху
+
+        if use_log_scale:
+            plt.yscale('log')
+            max_y = max(max(avg_data[k]) for k in keys)
+            min_y = min(min(avg_data[k]) for k in keys)
+            plt.ylim(bottom=0.01, top=max_y * 2)  # увеличиваем "потолок" в 10 раз
+        else:
+            plt.ylim(0, max(max(avg_data[k]) for k in keys) * 1.25)
         plt.savefig(f'{filename}.png')
         plt.show()
+
+    for key in avg_data:
+        avg_data[key] = clean_log_values(avg_data[key])
+
+    print(avg_data)
 
     # 1. Обращения к памяти
     plot_comparison(
@@ -75,7 +91,8 @@ def draw():
         y_label='Обращения к памяти',
         keys=['insert_mem', 'delete_mem', 'search_mem'],
         colors=['skyblue', 'salmon', 'mediumseagreen'],
-        filename='./images/memory'
+        filename='./images/memory',
+        use_log_scale=True
     )
 
     # 2. Вызовы хеш-функций
@@ -84,7 +101,8 @@ def draw():
         y_label='Вызовы хеш-функции',
         keys=['insert_hash', 'delete_hash', 'search_hash'],
         colors=['skyblue', 'salmon', 'mediumseagreen'],
-        filename='./images/hash'
+        filename='./images/hash',
+        use_log_scale=True
     )
 
     # 3. Время выполнения
@@ -93,7 +111,8 @@ def draw():
         y_label='Время (сек)',
         keys=['insert_time', 'delete_time', 'search_time'],
         colors=['skyblue', 'salmon', 'mediumseagreen'],
-        filename='./images/time'
+        filename='./images/time',
+        use_log_scale=True
     )
 
 def get_keys(json_dict):
