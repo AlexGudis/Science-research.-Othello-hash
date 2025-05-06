@@ -353,6 +353,7 @@ class Othello:
                             self.g.nodes[u]['color'] = 'black'
                         else:
                             self.g.nodes[u]['color'] = 'white'
+                        info.memory += 2
                     elif v not in already_seen:
                         self.b[j] = self.a[i] ^ t_k
                         # already_seen.append(v)
@@ -360,6 +361,7 @@ class Othello:
                             self.g.nodes[v]['color'] = 'black'
                         else:
                             self.g.nodes[v]['color'] = 'white'
+                        info.memory += 3
                 already_seen.add(u)
                 already_seen.add(v)
 
@@ -370,7 +372,6 @@ class Othello:
                 self.draw_graph()
                 '''
 
-                info.memory += 2
         else:
             # print('Nothing to do')
             # print(f'Current class = {self.g[right_node_sig][left_node_sig]} /// and wanted class = {t_k}')

@@ -1,5 +1,6 @@
 import random
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def test_info(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time):
@@ -14,49 +15,86 @@ def test_info(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, a
     print(f'AVG hash_cnt on delete = {avg_delete_hash}\n')
 
 
+    
 
 
-def draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time, name):
+def get_data(filename):
+    data = dict()
+    with open(filename, "r") as f:
+        for el in f.readlines():
+            el = el.split()
+            data[el[0]] = float(el[1])
+    return data
+
+
+def draw():
+    oth_data = get_data('othello_data')
+    cucko_data = get_data('cuckoo_data')
+
+    avg_data = {
+        'insert_mem': [cucko_data['avg_insert_mem'], oth_data['avg_insert_mem']],
+        'delete_mem': [cucko_data['avg_delete_mem'], oth_data['avg_delete_mem']],
+        'search_mem': [cucko_data['avg_search_mem'], oth_data['avg_search_mem']],
+        'insert_hash': [cucko_data['avg_insert_hash'], oth_data['avg_insert_hash']],
+        'delete_hash': [cucko_data['avg_delete_hash'], oth_data['avg_delete_hash']],
+        'search_hash': [cucko_data['avg_search_hash'], oth_data['avg_search_hash']],
+        'insert_time': [cucko_data['avg_insert_time'], oth_data['avg_insert_time']],
+        'delete_time': [cucko_data['avg_delete_time'], oth_data['avg_delete_time']],
+        'search_time': [cucko_data['avg_search_time'], oth_data['avg_search_time']]
+    }
+
+    labels = ['Cuckoo', 'Othello']
+    bar_width = 0.2
+    x = np.arange(len(labels))
+
+    def plot_comparison(title, y_label, keys, colors, filename):
+        plt.figure(figsize=(9, 5))
+        for i, key in enumerate(keys):
+            offset = (i - 1) * bar_width  # -0.2, 0, +0.2
+            values = avg_data[key]
+            bars = plt.bar(x + offset, values, width=bar_width, label=key.split('_')[0].capitalize(), color=colors[i])
+            
+            # Подписи сверху
+            for bar in bars:
+                height = bar.get_height()
+                plt.text(bar.get_x() + bar.get_width()/2, height + height*0.03, f'{height:.3f}', ha='center', va='bottom', fontsize=9)
+
+        plt.xticks(x, labels)
+        plt.ylabel(y_label)
+        plt.title(title)
+        plt.legend()
+        plt.grid(True, linestyle='--', alpha=0.4)
+        plt.tight_layout()
+        plt.ylim(0, max(max(avg_data[k]) for k in keys) * 1.25)  # запас сверху
+        plt.savefig(f'{filename}.png')
+        plt.show()
+
     # 1. Обращения к памяти
-    plt.figure(figsize=(6, 4))
-    plt.bar(['Вставка', 'Удаление', 'Поиск'], [avg_insert_mem, avg_delete_mem, avg_search_mem], color=['skyblue', 'salmon', 'pink'], width=0.4)
-    plt.title('Среднее число обращений к памяти')
-    plt.ylabel('Число обращений')
-    plt.grid(True, linestyle='--', alpha=0.5)
-    for i, v in enumerate([avg_insert_mem, avg_delete_mem, avg_search_mem]):
-        plt.text(i, v + 0.5, f'{v:.2f}', ha='center')
-    plt.tight_layout()
-    max_val = max(avg_insert_mem, avg_delete_mem, avg_search_mem)
-    plt.ylim(0, max_val * 1.2)
-    plt.savefig(f'{name}_memory.png')
-    plt.show()
+    plot_comparison(
+        title='Среднее число обращений к памяти при 40% загрузке',
+        y_label='Обращения к памяти',
+        keys=['insert_mem', 'delete_mem', 'search_mem'],
+        colors=['skyblue', 'salmon', 'mediumseagreen'],
+        filename='./images/memory'
+    )
 
-    # 2. Вызовы хеш-функции
-    plt.figure(figsize=(6, 4))
-    plt.bar(['Вставка', 'Удаление', 'Поиск'], [avg_insert_hash, avg_delete_hash, avg_search_hash], color=['skyblue', 'salmon', 'pink'], width=0.4)
-    plt.title('Среднее число вызовов хеш-функции')
-    plt.ylabel('Число вызовов')
-    plt.grid(True, linestyle='--', alpha=0.5)
-    for i, v in enumerate([avg_insert_hash, avg_delete_hash, avg_search_hash]):
-        plt.text(i, v + 0.5, f'{v:.2f}', ha='center')
-    plt.tight_layout()
-    max_val = max(avg_insert_hash, avg_delete_hash, avg_search_hash)
-    plt.ylim(0, max_val * 1.2)
-    plt.savefig(f'{name}_hash.png')
-    plt.show()
+    # 2. Вызовы хеш-функций
+    plot_comparison(
+        title='Среднее число вызовов хеш-функции при 40% загрузке',
+        y_label='Вызовы хеш-функции',
+        keys=['insert_hash', 'delete_hash', 'search_hash'],
+        colors=['skyblue', 'salmon', 'mediumseagreen'],
+        filename='./images/hash'
+    )
 
-    # 3. Время вставки
-    plt.figure(figsize=(6, 4))
-    plt.bar(['Вставка'], [avg_insert_time], color='skyblue', width=0.01)
-    plt.title('Среднее время выполнения вставки')
-    plt.ylabel('Время (сек)')
-    plt.grid(True, linestyle='--', alpha=0.5)
-    plt.text(0, avg_insert_time + 0.0001, f'{avg_insert_time:.6f}', ha='center')
-    plt.tight_layout()
-    max_val = max([avg_insert_time])
-    plt.ylim(0, max_val * 1.2)
-    plt.savefig(f'{name}_time.png')
-    plt.show()
+    # 3. Время выполнения
+    plot_comparison(
+        title='Среднее время выполнения операций при 40% загрузке',
+        y_label='Время (сек)',
+        keys=['insert_time', 'delete_time', 'search_time'],
+        colors=['skyblue', 'salmon', 'mediumseagreen'],
+        filename='./images/time'
+    )
 
 def get_keys(json_dict):
     keys = []
@@ -92,3 +130,7 @@ class Info():
         self.hash = hash   # число вычислений хеш-функций
         self.failed = failed
         self.contruct_cnt = contruct_cnt   # число перестроений структуры для операции insert в Отелло
+
+
+if __name__ == '__main__':
+    draw()

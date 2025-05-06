@@ -4,7 +4,7 @@ from common import get_keys, generate_kv, Info, test_info, draw
 import time
 
 hash_functions = [hashlib.sha1, hashlib.sha224, hashlib.sha256,
-                  hashlib.sha384, hashlib.sha3_512, hashlib.sha512]
+                  hashlib.sha384, hashlib.sha3_512, hashlib.sha512, hashlib.sha3_256, hashlib.sha3_384]
 
 
 
@@ -56,8 +56,41 @@ class HashTab():
         pos = position1
         table = self.array1
 
+        cycle = False
+        pos_1 = set()
+        pos_2 = set()
+
+        while not cycle:
+            if table[pos] == None:               # if the position in the current table is empty
+                table[pos] = n                   # insert the node there and return True
+                self.keys_cnt += 1
+                return True, info
+            info.memory += 1
+            
+            n, table[pos] = table[pos], n       # else, evict item in pos and insert the item
+                                                # then deal with the displaced node.
+            info.memory += 1
+
+            if pos == position1:                            # if we're checking the 1st table right now, 
+                if pos in pos_1:
+                    cycle = True
+                position1, position2 = self.hashFunc(n.key) # hash the displaced node,
+                pos = position2                             # and check its 2nd position 
+                table = self.array2                  # in the 2nd table (next time through loop)
+                pos_2.add(pos)
+            else:                               
+                if pos in pos_2:
+                    cycle = True
+                position1, position2 = self.hashFunc(n.key) # otherwise, hash the displaced node,
+                pos == position1                            # and check the 1st table position. 
+                table = self.array1
+                pos_1.add(pos)
+            info.hash += 2
+
+
+
         #       
-        for _ in range(5):
+        '''for _ in range(self.size):
             #print('Inserting...')
             
             if table[pos] == None:               # if the position in the current table is empty
@@ -78,7 +111,7 @@ class HashTab():
                 position1, position2 = self.hashFunc(n.key) # otherwise, hash the displaced node,
                 pos == position1                            # and check the 1st table position. 
                 table = self.array1
-            info.hash += 2
+            info.hash += 2'''
 
 
         # This line will never be executed due to infinite loop above
@@ -90,7 +123,7 @@ class HashTab():
         res, info_ins = self.insert(n.key, n.data)      # deal with evicted item
         
         info.hash += info_reh.hash + info_ins.hash
-        info.memory += info_reh.memory + info_ins.memory
+        info.memory +=  info_reh.memory + info_ins.memory
 
         return True, info
 
@@ -196,7 +229,7 @@ class HashTab():
 
 
 def test():
-    size = 40
+    size = 570
     missing = 0
     found = 0 
 
@@ -205,7 +238,7 @@ def test():
 
     keys, values = get_keys(json_dict)
     # create a hash table with an initially small number of bukets
-    cuko = HashTab(110)
+    cuko = HashTab(2200)
     inserted = 0
     find_after = 0
 
@@ -213,7 +246,7 @@ def test():
         if cuko.insert(keys[i], values[i]):
             inserted += 1
 
-        #print(f'Inserted = {inserted}')
+        print(f'Inserted = {inserted}')
 
         ans, info = cuko.find(keys[i])
         if ans == values[i]:
@@ -232,6 +265,7 @@ def test():
 
     delete_mem_cnt = []
     delete_hash_cnt = []
+    delete_time = []
     for _ in range(100):
         new_k, new_v = generate_kv()
 
@@ -242,17 +276,24 @@ def test():
         insert_hash_cnt.append(info_ins.hash)
         insert_time.append(finish_t - start_t)
 
+        start_t = time.time()
         res, info_del = cuko.delete(new_k)
+        finish_t = time.time()
         delete_mem_cnt.append(info_del.memory)
         delete_hash_cnt.append(info_del.hash)
+        delete_time.append(finish_t - start_t)
 
 
     """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ПОИСКА"""
     search_memory_cnt = []
     search_hash_cnt = []
+    search_time = []
     cnt = 0
     for i in range(size):
+        start_t = time.time()
         ans, info = cuko.find(keys[i])
+        finish_t = time.time()
+        search_time.append(finish_t - start_t)
         search_memory_cnt.append(info.memory)
         search_hash_cnt.append(info.hash)
         if ans == values[i]:
@@ -267,9 +308,23 @@ def test():
     avg_search_hash = sum(search_hash_cnt) / len(search_hash_cnt)
 
     avg_insert_time = sum(insert_time) / len(insert_time)
+    avg_delete_time = sum(delete_time) / len(delete_time)
+    avg_search_time = sum(search_time) / len(search_time)
+
+
+    data = {'avg_insert_mem': avg_insert_mem,
+        'avg_delete_mem': avg_delete_mem, 'avg_search_mem': avg_search_mem, 
+        'avg_insert_hash': avg_insert_hash, 'avg_delete_hash':avg_delete_hash,
+        'avg_search_hash':avg_search_hash, 'avg_insert_time':avg_insert_time,
+        'avg_delete_time':avg_delete_time, 'avg_search_time': avg_search_time}
+
+
+    with open('cuckoo_data', 'w+') as f:
+        for k, v in data.items():
+            f.writelines(f'{k} {v}\n')
+
 
     test_info(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time)
-    draw(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time, name='cuko')
 
     print(f'Correct is {cnt} of {size}')
 

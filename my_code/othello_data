@@ -1,0 +1,9 @@
+avg_insert_mem 6.6
+avg_delete_mem 0.0
+avg_search_mem 6.0
+avg_insert_hash 6.0
+avg_delete_hash 6.0
+avg_search_hash 6.0
+avg_insert_time 0.018250458240509033
+avg_delete_time 1.7156600952148436e-05
+avg_search_time 6.4830346540971235e-06
