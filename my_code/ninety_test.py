@@ -33,7 +33,7 @@ pg.construct(json_dict)
 max_load = pg.group[0].ma
 n = len(json_dict)
 print(f'max_load = {max_load}, current_load = {n}')
-load = 0.5
+load = 0.2
 # Добавляем недостающее число правил, чтобы загрузка каждой доли графа стала фиксированной
 for i in range(int((max_load * load - n))):
     new_k, new_v = generate_kv()

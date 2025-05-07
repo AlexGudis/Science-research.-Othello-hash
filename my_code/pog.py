@@ -47,8 +47,8 @@ class POG:
             n = len(table)
 
             # LOADFACTOR = +-40%
-            a = bitarray.bitarray(int(n * 2.2)) 
-            b = bitarray.bitarray(int(n * 2.2))
+            a = bitarray.bitarray(int(n * 5)) 
+            b = bitarray.bitarray(int(n * 5))
             ma = len(a)
             mb = len(b)
             ha = hashlib.sha3_512

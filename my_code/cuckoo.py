@@ -56,7 +56,7 @@ class HashTab():
         pos = position1
         table = self.array1
 
-        cycle = False
+        '''cycle = False
         pos_1 = set()
         pos_2 = set()
 
@@ -85,12 +85,12 @@ class HashTab():
                 pos == position1                            # and check the 1st table position. 
                 table = self.array1
                 pos_1.add(pos)
-            info.hash += 2
+            info.hash += 2'''
 
 
 
         #       
-        '''for _ in range(self.size):
+        for _ in range(5):
             #print('Inserting...')
             
             if table[pos] == None:               # if the position in the current table is empty
@@ -111,7 +111,7 @@ class HashTab():
                 position1, position2 = self.hashFunc(n.key) # otherwise, hash the displaced node,
                 pos == position1                            # and check the 1st table position. 
                 table = self.array1
-            info.hash += 2'''
+            info.hash += 2
 
 
         # This line will never be executed due to infinite loop above
@@ -229,7 +229,7 @@ class HashTab():
 
 
 def test():
-    size = 570
+    load = 1000
     missing = 0
     found = 0 
 
@@ -238,11 +238,11 @@ def test():
 
     keys, values = get_keys(json_dict)
     # create a hash table with an initially small number of bukets
-    cuko = HashTab(2200)
+    cuko = HashTab(5000)
     inserted = 0
     find_after = 0
 
-    for i in range(size):
+    for i in range(load):
         if cuko.insert(keys[i], values[i]):
             inserted += 1
 
@@ -254,7 +254,8 @@ def test():
         else:
             print(f'ERROR with k-v pair: {keys[i]}---{values[i]}')
     
-    print(f'Correct is {find_after} of {size}')
+    print(f'Correct is {find_after} of {load}')
+    print(f'Final size is {cuko.size}')
 
 
     """Тестирование среднего числа обращений к памяти и вызовов хеш-функции на операции ВСТАВКИ"""
@@ -289,7 +290,7 @@ def test():
     search_hash_cnt = []
     search_time = []
     cnt = 0
-    for i in range(size):
+    for i in range(load):
         start_t = time.time()
         ans, info = cuko.find(keys[i])
         finish_t = time.time()
@@ -326,7 +327,7 @@ def test():
 
     test_info(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, avg_delete_hash, avg_search_hash, avg_insert_time)
 
-    print(f'Correct is {cnt} of {size}')
+    print(f'Correct is {cnt} of {load}')
 
 
 def main():

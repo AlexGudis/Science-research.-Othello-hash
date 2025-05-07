@@ -15,9 +15,6 @@ def test_info(avg_insert_mem, avg_delete_mem, avg_search_mem, avg_insert_hash, a
     print(f'AVG hash_cnt on delete = {avg_delete_hash}\n')
 
 
-    
-
-
 def get_data(filename):
     data = dict()
     with open(filename, "r") as f:
@@ -50,18 +47,19 @@ def draw():
     def clean_log_values(values, min_value=1e-6):
         return [v if v > 0 else min_value for v in values]
 
-
     def plot_comparison(title, y_label, keys, colors, filename, use_log_scale=False):
         plt.figure(figsize=(9, 5))
         for i, key in enumerate(keys):
             offset = (i - 1) * bar_width  # -0.2, 0, +0.2
             values = avg_data[key]
-            bars = plt.bar(x + offset, values, width=bar_width, label=key.split('_')[0].capitalize(), color=colors[i])
-            
+            bars = plt.bar(x + offset, values, width=bar_width,
+                           label=key.split('_')[0].capitalize(), color=colors[i])
+
             # Подписи сверху
             for bar in bars:
                 height = bar.get_height()
-                plt.text(bar.get_x() + bar.get_width()/2, height + height*0.03, f'{height:.3f}', ha='center', va='bottom', fontsize=9)
+                plt.text(bar.get_x() + bar.get_width()/2, height + height*0.03,
+                         f'{height:.6f}' if height < 0.001 else f'{height:.3f}', ha='center', va='bottom', fontsize=9)
 
         plt.xticks(x, labels)
         plt.ylabel(y_label)
@@ -74,7 +72,8 @@ def draw():
             plt.yscale('log')
             max_y = max(max(avg_data[k]) for k in keys)
             min_y = min(min(avg_data[k]) for k in keys)
-            plt.ylim(bottom=0.01, top=max_y * 2)  # увеличиваем "потолок" в 10 раз
+            # увеличиваем "потолок" в 10 раз
+            plt.ylim(bottom=0.01, top=max_y * 2)
         else:
             plt.ylim(0, max(max(avg_data[k]) for k in keys) * 1.25)
         plt.savefig(f'{filename}.png')
@@ -87,7 +86,7 @@ def draw():
 
     # 1. Обращения к памяти
     plot_comparison(
-        title='Среднее число обращений к памяти при 40% загрузке',
+        title='Среднее число обращений к памяти при 20% загрузке',
         y_label='Обращения к памяти',
         keys=['insert_mem', 'delete_mem', 'search_mem'],
         colors=['skyblue', 'salmon', 'mediumseagreen'],
@@ -97,7 +96,7 @@ def draw():
 
     # 2. Вызовы хеш-функций
     plot_comparison(
-        title='Среднее число вызовов хеш-функции при 40% загрузке',
+        title='Среднее число вызовов хеш-функции при 20% загрузке',
         y_label='Вызовы хеш-функции',
         keys=['insert_hash', 'delete_hash', 'search_hash'],
         colors=['skyblue', 'salmon', 'mediumseagreen'],
@@ -107,21 +106,22 @@ def draw():
 
     # 3. Время выполнения
     plot_comparison(
-        title='Среднее время выполнения операций при 40% загрузке',
+        title='Среднее время выполнения операций при 20% загрузке',
         y_label='Время (сек)',
         keys=['insert_time', 'delete_time', 'search_time'],
         colors=['skyblue', 'salmon', 'mediumseagreen'],
-        filename='./images/time',
-        use_log_scale=True
+        filename='./images/time'
     )
+
 
 def get_keys(json_dict):
     keys = []
     values = []
     for k, v in json_dict.items():
-       keys.append(k)
-       values.append(v)
+        keys.append(k)
+        values.append(v)
     return keys, values
+
 
 def generate_mac():
     """Генерирует случайный MAC-адрес."""
@@ -132,6 +132,7 @@ def generate_vlan():
     """Генерирует случайный VLAN ID (от 1 до 4095)."""
     return random.randint(1, 4095)
 
+
 def generate_kv():
     mac = generate_mac()
     vlan = generate_vlan()
@@ -141,14 +142,15 @@ def generate_kv():
 
 
 class Info():
-    def __init__(self, type='', records = 0, key_inc = False, memory = 0, hash = 0, failed = 0, contruct_cnt = 0):
+    def __init__(self, type='', records=0, key_inc=False, memory=0, hash=0, failed=0, contruct_cnt=0):
         self.type = type
         self.records = records
         self.key_inc = key_inc
         self.memory = memory   # число доступов к памяти
         self.hash = hash   # число вычислений хеш-функций
         self.failed = failed
-        self.contruct_cnt = contruct_cnt   # число перестроений структуры для операции insert в Отелло
+        # число перестроений структуры для операции insert в Отелло
+        self.contruct_cnt = contruct_cnt
 
 
 if __name__ == '__main__':
