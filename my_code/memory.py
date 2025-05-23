@@ -37,5 +37,7 @@ tracemalloc.start()
 
 a = bitarray(1024)
 
+
+
 snapshot = tracemalloc.take_snapshot()
 display_top(snapshot)

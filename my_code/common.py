@@ -25,8 +25,8 @@ def get_data(filename):
 
 
 def draw():
-    oth_data = get_data('othello_data')
-    cucko_data = get_data('cuckoo_data')
+    oth_data = get_data('data/othello_data')
+    cucko_data = get_data('data/cuckoo_data')
 
     avg_data = {
         'insert_mem': [cucko_data['avg_insert_mem'], oth_data['avg_insert_mem']],
