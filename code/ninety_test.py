@@ -46,6 +46,12 @@ def draw(
         if any(val != 0 for val in vals):
             plt.figure(figsize=(10, 4))
             plt.plot(load_factors, vals, marker=marker, color=color, label=label)
+
+            y_min, y_max = min(vals), max(vals)
+            if y_max - y_min > 0:
+                plt.ylim(y_min - 0.1 * (y_max - y_min), y_max + 0.1 * (y_max - y_min))
+
+            #plt.yscale("log")
             plt.title(f"{title_prefix}{label}")
             plt.xlabel("Фактор загрузки")
             plt.ylabel(ylabel)
@@ -57,6 +63,12 @@ def draw(
 
     if not any_plotted:
         print(f"[!] Все значения в файле {filepath} равны нулю — графики не построены.")
+
+
+draw(filepath='data/othello_load/othello_load_memory', title_prefix='Среднее число обращений к памяти для операции: ')
+draw(filepath='data/othello_load/othello_load_hash', title_prefix='Среднее число вызовов хеш-функций для операции: ')
+draw(filepath='data/othello_load/othello_load_time', title_prefix='Среднее время работы для операции: ')
+'''
 
 
 def test_correct(oth, json_dict, keys):
@@ -79,10 +91,10 @@ keys, values = get_keys(json_dict)
 pg = pog.POG()
 pg.construct(json_dict)
 
-'''Вычисление, сколько элементов надо добавить для текущих размеров Отелло, чтобы загрузка стала определенной'''
+"""Вычисление, сколько элементов надо добавить для текущих размеров Отелло, чтобы загрузка стала определенной"""
 max_load = pg.group[0].ma
 load = len(json_dict) / max_load
-while load < 0.3:
+while load < 0.9:
     # Добавляем недостающее число правил, чтобы загрузка каждой доли графа стала фиксированной
     
     print(f'max_load = {max_load}, current_load = {len(json_dict)}, load_factor = {load}')
@@ -181,3 +193,4 @@ draw(filepath='data/othello_load/othello_load_memory', title_prefix='Средн�
 draw(filepath='data/othello_load/othello_load_hash', title_prefix='Среднее число вызовов хеш-функций для операции: ')
 draw(filepath='data/othello_load/othello_load_time', title_prefix='Среднее время работы для операции: ')
 
+'''

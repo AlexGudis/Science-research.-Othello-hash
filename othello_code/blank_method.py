@@ -1,8 +1,8 @@
-from recordclass import RecordClass
+#from recordclass import RecordClass
 from math import log2, ceil
 
 
-class Info(RecordClass):
+class Info():
     type:     str = ''
     records:  int = 0
     key_inc: bool = False
