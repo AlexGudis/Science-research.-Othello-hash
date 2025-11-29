@@ -1,12 +1,17 @@
-import networkx as nx
-from networkx.algorithms import bipartite
+import networkx as nx # TODO: избавиться от этого, нужны самописные решения с понятной реализацией
+from networkx.algorithms import bipartite # TODO: Почему это не используется?
 import matplotlib.pyplot as plt
 import hashlib
 import random
 from common import Info
 
 hash_functions = [hashlib.sha1, hashlib.sha224, hashlib.sha256,
-                  hashlib.sha384, hashlib.sha3_512, hashlib.sha512]
+                  hashlib.sha384, hashlib.sha3_512, hashlib.sha512] # TODO: заменить хотя бы на CRC32
+
+# TODO: реализовать самописную хеш-функцию (см. код Алексея) 
+# TODO: добавить алгоритму детерминированности. Все random должны быть с seed, чтобы была воспроизводимость тестов
+# Я сильно страдал, пытаясь потом воспроизвести похожие ситуации, на которых всё падало
+# TODO: у всех функций должны быть понятные полные докстринги, все параметры и возвращаемые значения аннотированы
 
 
 class Othello:
@@ -35,6 +40,7 @@ class Othello:
 
     def check_cycle(self):
         """Checks if any cycle exists in graph g"""
+        # TODO: это нужно переделать на своё
         try:
             nx.find_cycle(self.g)
             return True
@@ -210,6 +216,7 @@ class Othello:
             for u, v, edge_class in edges:
                 self.g.add_edge(u, v, edge_class=edge_class)
             # Изначально все вершины покрашены в серый цвет
+            # TODO: уйти от цветовой гаммы вершин, этого поля не должно быть
             node_colors = {
                 node: "gray" for node in left_nodes}  # Левые вершины
             # Правые вершины
@@ -244,6 +251,11 @@ class Othello:
         print(self.g.nodes())
         print(self.g.edges())
         self.draw_graph()'''
+
+        # TODO: нужен адекватный dfs обход вершин
+        # TODO: нужен корректный поиск компонент связности в графе
+        # TODO: уйти от цветов, сильно усложняет реализацию
+        # TODO: Можно добавить просто флажок на то, установлен ли какой-то бит у вершины или она условно "серая"
 
         # Генерируем номера узлов через хеши
         left_node = int.from_bytes(
@@ -381,6 +393,8 @@ class Othello:
 
         return info
 
+
+    # TODO: Вероятно, избавиться от этого за ненадобностью и отсутствием use-cases
     def addX(self, k):
         """Input key into X"""
         pass
