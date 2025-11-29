@@ -3,6 +3,9 @@ import bitarray
 import hashlib
 from common import Info
 
+# TODO: Вероятно, от этого в принципе придется отказаться, так как Отелло будет только одно в реальности. 
+# Отказ от фиктивной параллельности
+
 class POG:
     def __init__(self):
         self.group = []
